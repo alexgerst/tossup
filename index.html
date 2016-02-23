@@ -66,6 +66,17 @@
 		<button onclick="toggleSensors()" class="charcoal">Toggle sensors</button>
 	</p>
 
+	<!--Temporary output element-->
+	<h2>Console:</h2>
+	<p>
+		<span id="TestConsole">[Waiting for value]</span>
+	</p>
+
+	<h2>Accelerometer:</h2>
+	<p>
+		<span id="AccelerometerData">[Waiting for value]</span>
+	</p>
+
 	<h2>Keypress:</h2>
 	<p>
 		<span id="KeypressData">[Waiting for value]</span>
@@ -74,11 +85,6 @@
 	<h2>Temperature:</h2>
 	<p>
 		<span id="TemperatureData">[Waiting for value]</span>
-	</p>
-
-	<h2>Accelerometer:</h2>
-	<p>
-		<span id="AccelerometerData">[Waiting for value]</span>
 	</p>
 
 	<h2>Humidity:</h2>
@@ -118,6 +124,28 @@
 	// SensorTag object.
 	var sensortag
 
+	// Various variables
+
+	var pressed = false // Button press indicator (default false)
+	var caught = true // Device caught indicator (default true)
+	var peaked = false // Apogee reached indicator (default false)
+
+	var z_acc // Previous z-axis acceleration measurement
+
+	var acc_rate = 100 	// Accelerometer sample rate in ms (1-1000)
+
+	var throw_level = 6 // Lower bound for velocity change indicating a throw (large)
+	var catch_level = 2 // Lower bound for velocity change indicating a catch (medium)
+	var peak_level = 0.1 // Upper bound for velocity change indicating apogee reached (small)
+
+	var v = [0] 	// Z-axis velocity measurements (initially 0)
+	var p = [0] // Z-axis position measurements (initially 0)
+
+	var n = 0 // Number of samples
+	var time_a = 0 // Apogee time variable (number of samples)
+	var time_c = 0 //Catch time variable (number of samples)
+
+
 	function initialiseSensorTag()
 	{
 		// Create SensorTag CC2650 instance.
@@ -145,7 +173,7 @@
 			.temperatureCallback(temperatureHandler, 1000)
 			.humidityCallback(humidityHandler, 1000)
 			.barometerCallback(barometerHandler, 1000)
-			.accelerometerCallback(accelerometerHandler, 1000)
+			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.magnetometerCallback(magnetometerHandler, 1000)
 			.gyroscopeCallback(gyroscopeHandler, 1000)
 			.luxometerCallback(luxometerHandler, 1000)
@@ -259,28 +287,102 @@
 		setBackgroundColor('white')
 	}
 
+	// Controls the system response to key presses.
 	function keypressHandler(data)
 	{
-		// Update background color.
 		switch (data[0])
 		{
-			case 0:
-				setBackgroundColor('white')
+			case 0: // This is very cool - basically a 'key released' action.
 				break;
-			case 1:
-				setBackgroundColor('red')
+			case 1: // Large button
+				toggleTracking()
 				break;
-			case 2:
-				setBackgroundColor('blue')
+			case 2: // Power button
 				break;
-			case 3:
-				setBackgroundColor('magenta')
+			case 3: // Both 1 and 2
 				break;
 		}
+	}
 
-		// Update the value displayed.
-		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
-		displayValue('KeypressData', string)
+	// Toggles data collection mode.
+	function toggleTracking() 
+	{
+		if (pressed) 
+		{
+			stopTracking()
+		} else {
+			displayValue("TestConsole", "Ready")
+		}
+		pressed = !pressed
+		
+	}
+
+	//Ends tracking, displays values & resets data
+	function stopTracking() 
+	{
+		var s = ""
+		for (var i=0; i<v.length; i++) {
+			s += v[i]
+			s = s + (((i+1) % 2 == 0) ? ",\n" : ",")
+		}
+		var t = (time_c - time_a) * (acc_rate/1000)
+
+		var d = 0.5 * 9.8 * Math.pow(t, 2) // d = 1/2 a(t^2) when vi = 0	//TODO: Fix me (value is too high)
+
+		displayValue('TestConsole', "Peaked at: "+time_a+" Caught at "+time_c+", Distance: "+d+"m")
+		v = [0]
+		p = [0]
+		n = 0
+		caught = true
+		peaked = false
+		time_a = 0
+		time_c = 0
+	}
+
+	// This is where the magic happens. 
+	function accelerometerHandler(data)
+	{
+		var values = sensortag.getAccelerometerValues(data)
+		var z = values.z
+
+		if (pressed) {
+
+			n += 1 // Increment sample count
+
+			// Calculate and store change in velocity
+			var change = -z+z_acc
+			var vChange = change/(acc_rate/1000) // v = a/t
+			v.push(v[v.length-1]+vChange)
+
+			//Calculate and store change in position (warning: this data is unlikely to be accurate)
+			var pChange = vChange/(acc_rate/1000) // p = v/t
+			p.push(p[p.length-1]+pChange)
+
+			// When thrown:
+			if (caught && (vChange >= throw_level)) {
+				caught = false
+				peaked = false
+				displayValue("TestConsole", "Thrown")
+
+			//When apogee reached:
+			} else if (!caught && !peaked && (vChange <= peak_level)) {
+				if (!peaked) {
+					time_a = n
+					peaked = true
+					displayValue("TestConsole", "Peaked")
+				}
+
+			//When caught:
+			} else if (!caught && peaked && (vChange >= catch_level)) {
+				time_c = n
+				caught = true
+				displayValue("TestConsole", "Caught")
+			}
+
+		}
+
+		// Update last accelerometer value
+		z_acc = z
 	}
 
 	function temperatureHandler(data)
@@ -304,29 +406,6 @@
 
 		// Update the value displayed.
 		displayValue('TemperatureData', string)
-	}
-
-	function accelerometerHandler(data)
-	{
-		// Calculate the x,y,z accelerometer values from raw data.
-		var values = sensortag.getAccelerometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
-
-		//var model = sensortag.getDeviceModel()
-		//var dataOffset = (model == 2 ? 6 : 0)
-
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, dataOffset, 6) + '</span><br/>' +
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + 'G<br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + 'G<br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + 'G<br/>'
-
-		// Update the value displayed.
-		displayValue('AccelerometerData', string)
 	}
 
 	function humidityHandler(data)
