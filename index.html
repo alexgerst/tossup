@@ -134,9 +134,9 @@
 
 	var acc_rate = 100 	// Accelerometer sample rate in ms (1-1000)
 
-	var throw_level = 6 // Lower bound for velocity change indicating a throw (large)
-	var catch_level = 2 // Lower bound for velocity change indicating a catch (medium)
-	var peak_level = 0.1 // Upper bound for velocity change indicating apogee reached (small)
+	var throw_level = 8 //6 // Lower bound for velocity change indicating a throw (large)
+	var catch_level = 0.5 //2 // Lower bound for velocity change indicating a catch (medium)
+	var peak_level = 0.05//0.1 // Upper bound for velocity change indicating apogee reached (small)
 
 	var v = [0] 	// Z-axis velocity measurements (initially 0)
 	var p = [0] // Z-axis position measurements (initially 0)
@@ -325,11 +325,18 @@
 			s += v[i]
 			s = s + (((i+1) % 2 == 0) ? ",\n" : ",")
 		}
-		var t = (time_c - time_a) * (acc_rate/1000)
 
-		var d = 0.5 * 9.8 * Math.pow(t, 2) // d = 1/2 a(t^2) when vi = 0	//TODO: Fix me (value is too high)
+		//var t = (time_c - time_a) * (acc_rate/1000)
+		var t = (time_c - time_a)
 
-		displayValue('TestConsole', "Peaked at: "+time_a+" Caught at "+time_c+", Distance: "+d+"m")
+		var d = calculateDistance(t)
+
+		var di = d*39.3700787 // meters->inches
+		var df = Math.round(di/12) // feet
+		di = Math.round(di % 12) //inches
+
+
+		displayValue('TestConsole', "Falling time: "+t+" ms, Height: "+df+"\' ' "+di+"\"")
 		v = [0]
 		p = [0]
 		n = 0
@@ -339,18 +346,29 @@
 		time_c = 0
 	}
 
+	//Takes a variable representing time in ms, returns a value representing the distance an object falls in meters during that time. 
+	function calculateDistance(t) 
+	{
+		return 0.5 * 9.8 * Math.pow(t/1000, 2) // d = 1/2 a(t^2) when vi = 0
+	}
+
+
 	// This is where the magic happens. 
-	function accelerometerHandler(data)
+	function accelerometerHandler(data)		// TODO: Decrease apogee value? Use JS timer? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground? Combine accelerations (magnitude) from different axis?
 	{
 		var values = sensortag.getAccelerometerValues(data)
+		var x = values.x
+		var y = values.y
 		var z = values.z
+
+		var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
 
 		if (pressed) {
 
 			n += 1 // Increment sample count
 
 			// Calculate and store change in velocity
-			var change = -z+z_acc
+			var change = -tot+z_acc
 			var vChange = change/(acc_rate/1000) // v = a/t
 			v.push(v[v.length-1]+vChange)
 
@@ -367,22 +385,23 @@
 			//When apogee reached:
 			} else if (!caught && !peaked && (vChange <= peak_level)) {
 				if (!peaked) {
-					time_a = n
+					time_a = new Date() //n
 					peaked = true
 					displayValue("TestConsole", "Peaked")
 				}
 
 			//When caught:
 			} else if (!caught && peaked && (vChange >= catch_level)) {
-				time_c = n
+				time_c = new Date() //n
 				caught = true
 				displayValue("TestConsole", "Caught")
+				toggleTracking() //Don't wait for a button press
 			}
 
 		}
 
 		// Update last accelerometer value
-		z_acc = z
+		z_acc = tot
 	}
 
 	function temperatureHandler(data)
