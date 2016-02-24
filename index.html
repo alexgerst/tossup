@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-	Demonstration of the TI SensorTag JavaScript library.
+	Modified from Demonstration of the TI SensorTag JavaScript library.
 -->
 <html>
 
@@ -36,62 +36,56 @@
 		<img class="logotype" src="ui/images/logo.svg" alt="Evothings" />
 	</header>
 
-	<h1>TossUp</h1>
 
-	<p>
-		Activate the SensorTag and press Connect to begin.
-	</p>
+		<h1>TossUp</h1>
 
-	<p id="upgradeNotice" class="hidden">
-		<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
-	</p>
+		<p id="upgradeNotice" class="hidden">
+			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
+		</p>
 
-	<button onclick="connect()" class="green">
-		Connect
-	</button>
 
-	<button onclick="disconnect()" class="charcoal">
-		Disconnect
-	</button>
+		<button type="button" onclick="connect()" class="btn btn-default">
+			Connect
+		</button>
 
-	<p>
-		<strong>Status:</strong> <span id="StatusData">Press Connect to find the nearest SensorTag</span>
-	</p>
+		<button type="button" onclick="disconnect()" class="btn btn-default">
+			Disconnect
+		</button>
 
-	<p>
-		<button onclick="toggleSensors()" class="charcoal">Toggle sensors</button>
-	</p>
+		<p>
+			<strong>Status:</strong> <span id="StatusData">Press Connect to find the nearest SensorTag</span>
+		</p>
 
-	<h2>Accelerometer:</h2>
-	<p>
-		<span id="AccelerometerData">[Waiting for value]</span>
-	</p>
+		<h2>Accelerometer:</h2>
+		<p>
+			<span id="AccelerometerData">[Waiting for value]</span>
+		</p>
 
-	<h2>Gyroscope:</h2>
-	<p>
-		<span id="GyroscopeData">[Waiting for value]</span>
-	</p>
+		<h2>Gyroscope:</h2>
+		<p>
+			<span id="GyroscopeData">[Waiting for value]</span>
+		</p>
 
-	<h2>Keypress:</h2>
-	<p>
-		<span id="KeypressData">[Waiting for value]</span>
-	</p>
+		<h2>Keypress:</h2>
+		<p>
+			<span id="KeypressData">[Waiting for value]</span>
+		</p>
 
-	<h2>Magnetometer:</h2>
-	<p>
-		<span id="MagnetometerData">[Waiting for value]</span>
-	</p>
+		<h2>Magnetometer:</h2>
+		<p>
+			<span id="MagnetometerData">[Waiting for value]</span>
+		</p>
 
-	<h2>Barometer:</h2>
-	<p>
-		<span id="BarometerData">[Waiting for value]</span>
-	</p>
+		<h2>Barometer:</h2>
+		<p>
+			<span id="BarometerData">[Waiting for value]</span>
+		</p>
 
-	<h2>Device info:</h2>
+			<!-- 	<h2>Device info:</h2>
 	<p>
 		SensorTag device model: <span id="DeviceModel">?</span><br />
 		Firmware version: <span id="FirmwareData">?</span>
-	</p>
+	</p> -->
 
 	<script>
 	// SensorTag object.
@@ -138,30 +132,6 @@
 		resetSensorDisplayValues()
 	}
 
-	var sensorsOn = true
-
-	function toggleSensors()
-	{
-		if(sensorsOn)
-		{
-			sensortag.keypressOff()
-			sensortag.barometerOff()
-			sensortag.accelerometerOff()
-			sensortag.magnetometerOff()
-			sensortag.gyroscopeOff()
-			sensorsOn = false
-		}
-		else
-		{
-			sensortag.keypressOn()
-			sensortag.barometerOn()
-			sensortag.accelerometerOn()
-			sensortag.magnetometerOn()
-			sensortag.gyroscopeOn()
-			sensorsOn = true
-		}
-	}
-
 	function statusHandler(status)
 	{
 		if ('DEVICE_INFO_AVAILABLE' == status)
@@ -182,14 +152,8 @@
 			}
 
 			// Show device model and firmware version.
-			displayValue('DeviceModel', sensortag.getDeviceModel())
-			displayValue('FirmwareData', sensortag.getFirmwareString())
-
-			// Show which sensors are not supported by the connected SensorTag.
-			if (!sensortag.isLuxometerAvailable())
-			{
-				document.getElementById('Luxometer').style.display = 'none'
-			}
+			// displayValue('DeviceModel', sensortag.getDeviceModel())
+			// displayValue('FirmwareData', sensortag.getFirmwareString())
 		}
 
 		displayValue('StatusData', status)
@@ -214,8 +178,8 @@
 		// Clear current values.
 		var blank = '[Waiting for value]'
 		displayValue('StatusData', 'Press Connect to find a SensorTag')
-		displayValue('DeviceModel', '?')
-		displayValue('FirmwareData', '?')
+		// displayValue('DeviceModel', '?')
+		// displayValue('FirmwareData', '?')
 		displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
 		displayValue('MagnetometerData', blank)
