@@ -40,12 +40,16 @@
 			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
 		</p>
 
+<!-- 		<button type="button" onclick="toggleConnection()">
+			<img id="bluetooth_button" height="25" width="25" src="ui/images/bluetooth_red.png"/>
+		</button> -->
 
-		<button type="button" onclick="connect()" class="btn btn-default">
+
+		<button type="button" onclick="connect()">
 			Connect
 		</button>
 
-		<button type="button" onclick="disconnect()" class="btn btn-default">
+		<button type="button" onclick="disconnect()">
 			Disconnect
 		</button>
 
@@ -53,30 +57,6 @@
 			<strong>Status:</strong> <span id="StatusData">Press Connect to find the nearest SensorTag</span>
 		</p>
 
-		<h2>Accelerometer:</h2>
-		<p>
-			<span id="AccelerometerData">[Waiting for value]</span>
-		</p>
-
-		<h2>Gyroscope:</h2>
-		<p>
-			<span id="GyroscopeData">[Waiting for value]</span>
-		</p>
-
-		<h2>Keypress:</h2>
-		<p>
-			<span id="KeypressData">[Waiting for value]</span>
-		</p>
-
-		<h2>Magnetometer:</h2>
-		<p>
-			<span id="MagnetometerData">[Waiting for value]</span>
-		</p>
-
-		<h2>Barometer:</h2>
-		<p>
-			<span id="BarometerData">[Waiting for value]</span>
-		</p>
 
 			<!-- 	<h2>Device info:</h2>
 	<p>
@@ -105,9 +85,6 @@
 		// as the second parameter.
 		//
 
-		sensortag.temperatureOff()
-		sensortag.humidityOff()
-		sensortag.luxometerOff()
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
@@ -116,7 +93,13 @@
 			.accelerometerCallback(accelerometerHandler, 1000)
 			.magnetometerCallback(magnetometerHandler, 1000)
 			.gyroscopeCallback(gyroscopeHandler, 1000)
+
+		sensortag.temperatureOff()
+		sensortag.humidityOff()
+		sensortag.luxometerOff()
 	}
+
+	var tagConnected = false
 
 	function connect()
 	{
@@ -128,6 +111,18 @@
 		sensortag.disconnectDevice()
 		resetSensorDisplayValues()
 	}
+
+	// function toggleConnection(){
+	// 	if (!tagConnected) {
+	// 		connect();
+	// 		document.getElementById('bluetooth_button').src="ui/images/bluetooth_green.png";
+	// 		tagConnected = true;
+	// 	} else {
+	// 		disconnect();
+	// 		document.getElementById('bluetooth_button').src="ui/images/bluetooth_red.png";
+	// 		tagConnected = false;
+	// 	}
+	// }
 
 	function statusHandler(status)
 	{
@@ -177,11 +172,11 @@
 		displayValue('StatusData', 'Press Connect to find a SensorTag')
 		// displayValue('DeviceModel', '?')
 		// displayValue('FirmwareData', '?')
-		displayValue('KeypressData', blank)
-		displayValue('AccelerometerData', blank)
-		displayValue('MagnetometerData', blank)
-		displayValue('BarometerData', blank)
-		displayValue('GyroscopeData', blank)
+		// displayValue('KeypressData', blank)
+		// displayValue('AccelerometerData', blank)
+		// displayValue('MagnetometerData', blank)
+		// displayValue('BarometerData', blank)
+		// displayValue('GyroscopeData', blank)
 	}
 
 	function keypressHandler(data)
