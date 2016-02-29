@@ -135,16 +135,19 @@
 	var acc_rate = 100 	// Accelerometer sample rate in ms (1-1000)
 
 	var throw_level = 8 //6 // Lower bound for velocity change indicating a throw (large)
-	var catch_level = 0.5 //2 // Lower bound for velocity change indicating a catch (medium)
-	var peak_level = 0.05//0.1 // Upper bound for velocity change indicating apogee reached (small)
+	var catch_level = 2 //2 // Lower bound for velocity change indicating a catch (medium)
+	var peak_level = 0.05 //0.01 // Upper bound for velocity change indicating apogee reached (small)
 
-	var v = [0] 	// Z-axis velocity measurements (initially 0)
-	var p = [0] // Z-axis position measurements (initially 0)
+	var v = [0] 	// Velocity change measurements (initially 0)
 
-	var n = 0 // Number of samples
-	var time_a = 0 // Apogee time variable (number of samples)
-	var time_c = 0 //Catch time variable (number of samples)
+	var time_s = 0 // Start time variable
+	var time_t = 0 // Throw time variable
+	var time_a = 0 // Apogee time variable 
+	var time_c = 0 // Catch time variable
 
+	var n_t = 0
+	var n_a = 0
+	var n_c = 0
 
 	function initialiseSensorTag()
 	{
@@ -172,7 +175,7 @@
 			.keypressCallback(keypressHandler)
 			.temperatureCallback(temperatureHandler, 1000)
 			.humidityCallback(humidityHandler, 1000)
-			.barometerCallback(barometerHandler, 1000)
+			.barometerCallback(barometerHandler, acc_rate)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.magnetometerCallback(magnetometerHandler, 1000)
 			.gyroscopeCallback(gyroscopeHandler, 1000)
@@ -320,82 +323,107 @@
 	//Ends tracking, displays values & resets data
 	function stopTracking() 
 	{
-		var s = ""
-		for (var i=0; i<v.length; i++) {
-			s += v[i]
-			s = s + (((i+1) % 2 == 0) ? ",\n" : ",")
-		}
-
 		//var t = (time_c - time_a) * (acc_rate/1000)
+
 		var t = (time_c - time_a)
 
 		var d = calculateDistance(t)
 
 		var di = d*39.3700787 // meters->inches
 		var df = Math.round(di/12) // feet
-		di = Math.round(di % 12) //inches
+		di = Math.round((di%12)) //inches
 
+		var s = calculateScore(t)
 
-		displayValue('TestConsole', "Falling time: "+t+" ms, Height: "+df+"\' ' "+di+"\"")
+		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
+
+		// Display important info on computer for analysis
+		console.log("Velocity changes: " + v)
+		console.log("Time_t: "+time_t)
+		console.log("Time_a: "+time_a)
+		console.log("Time_c: "+time_c)
+
 		v = [0]
-		p = [0]
-		n = 0
 		caught = true
 		peaked = false
+		time_s = 0
 		time_a = 0
 		time_c = 0
+		time_t = 0
+
+		n_t = 0
+		n_a = 0
+		n_c = 0
 	}
 
-	//Takes a variable representing time in ms, returns a value representing the distance an object falls in meters during that time. 
+	//Takes a variable representing time in ms, returns a value representing the distance in meters an object falls during that time. 
 	function calculateDistance(t) 
 	{
-		return 0.5 * 9.8 * Math.pow(t/1000, 2) // d = 1/2 a(t^2) when vi = 0
+		return 0.5 * 9.8 * Math.pow(t/1000, 2) // d = 1/2 a(t^2) when vi = 0 (apogee)
+	}
+
+	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
+	function calculateScore(t)
+	{
+		var max = 1895 // The highest throw EVER
+		var min = 184 // Pathetic!
+
+		var s = Math.round((t/(max-min))*10)
+
+		return (s > 10) ? 10 : s 
 	}
 
 
 	// This is where the magic happens. 
-	function accelerometerHandler(data)		// TODO: Decrease apogee value? Use JS timer? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground? Combine accelerations (magnitude) from different axis?
+	function accelerometerHandler(data)		// TODO: Only analyze data after catch? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground? 
 	{
 		var values = sensortag.getAccelerometerValues(data)
 		var x = values.x
 		var y = values.y
 		var z = values.z
 
-		var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
+		var tot = z
+		//var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
 
 		if (pressed) {
 
-			n += 1 // Increment sample count
-
 			// Calculate and store change in velocity
-			var change = Math.abs(tot-p_acc)
-			var vChange = change/(acc_rate/1000) // v = a/t
-			v.push(v[v.length-1]+vChange)
+			var vChange = Math.abs(tot-p_acc)/(acc_rate/1000) // v = a/t
+			v.push(vChange)
 
-			//Calculate and store change in position (warning: this data is unlikely to be accurate)
-			var pChange = vChange/(acc_rate/1000) // p = v/t
-			p.push(p[p.length-1]+pChange)
+			//TODO: Count number of throw, catch, and apogee events.
 
 			// When thrown:
 			if (caught && (vChange >= throw_level)) {
+				time_s = (new Date()).getTime()
+				time_t = (new Date()).getTime() - time_s
 				caught = false
 				peaked = false
 				displayValue("TestConsole", "Thrown")
 
 			//When apogee reached:
 			} else if (!caught && !peaked && (vChange <= peak_level)) {
-				if (!peaked) {
-					time_a = new Date() //n
-					peaked = true
-					displayValue("TestConsole", "Peaked")
-				}
+				time_a = (new Date()).getTime() - time_s
+				peaked = true
+				displayValue("TestConsole", "Peaked")
 
-			//When caught:
+			//When caught (and apogee detected):
 			} else if (!caught && peaked && (vChange >= catch_level)) {
-				time_c = new Date() //n
+				time_c = (new Date()).getTime() - time_s
 				caught = true
 				displayValue("TestConsole", "Caught")
 				toggleTracking() //Don't wait for a button press
+
+			/*
+			// When caught (and apogee not detected, e.g. because device is spinning or moving laterally at apogee):
+			// Note: This code is neeeded when the total acceleration on the device (from >1 axis) is used.
+			} else if (!caught && !peaked && (vChange >= catch_level)) {
+				time_c = (new Date()).getTime() - time_s
+				time_a = (time_c-time_t)/2 // Extrapolate apogee time
+				caught = true
+				displayValue("TestConsole", "Caught")
+				toggleTracking() //Don't wait for a button press
+			*/
 			}
 
 		}
