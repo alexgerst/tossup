@@ -40,9 +40,9 @@
 			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
 		</p>
 
-<!-- 		<button type="button" onclick="toggleConnection()">
+		<button type="button" onclick="toggleConnection()">
 			<img id="bluetooth_button" height="25" width="25" src="ui/images/bluetooth_red.png"/>
-		</button> -->
+		</button>
 
 
 		<button type="button" onclick="connect()">
@@ -112,17 +112,13 @@
 		resetSensorDisplayValues()
 	}
 
-	// function toggleConnection(){
-	// 	if (!tagConnected) {
-	// 		connect();
-	// 		document.getElementById('bluetooth_button').src="ui/images/bluetooth_green.png";
-	// 		tagConnected = true;
-	// 	} else {
-	// 		disconnect();
-	// 		document.getElementById('bluetooth_button').src="ui/images/bluetooth_red.png";
-	// 		tagConnected = false;
-	// 	}
-	// }
+	function toggleConnection(){
+		if (!tagConnected) {
+			connect()
+		} else {
+			disconnect()
+		}
+	}
 
 	function statusHandler(status)
 	{
@@ -148,6 +144,14 @@
 			// displayValue('FirmwareData', sensortag.getFirmwareString())
 		}
 
+		if ('SENSORTAG_ONLINE' == status) {
+			document.getElementById('bluetooth_button').src="ui/images/bluetooth_green.png"
+			tagConnected = true
+		} else {
+			document.getElementById('bluetooth_button').src="ui/images/bluetooth_red.png"
+			tagConnected = false
+		}
+
 		displayValue('StatusData', status)
 	}
 
@@ -169,7 +173,7 @@
 	{
 		// Clear current values.
 		var blank = '[Waiting for value]'
-		displayValue('StatusData', 'Press Connect to find a SensorTag')
+		// displayValue('StatusData', 'Press Connect to find a SensorTag')
 		// displayValue('DeviceModel', '?')
 		// displayValue('FirmwareData', '?')
 		// displayValue('KeypressData', blank)
