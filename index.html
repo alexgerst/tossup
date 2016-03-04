@@ -14,6 +14,9 @@
 
 	<style>
 		@import 'ui/css/evothings-app.css';
+    @import 'libs/bootstrap/bootstrap.min.css';
+    @import 'libs/bootstrap/bootstrap-theme.min.css;';
+    @import 'ui/css/index.css';
 	</style>
 
 	<script>
@@ -25,6 +28,7 @@
 	<script src="libs/evothings/evothings.js"></script>
 	<script src="libs/evothings/ui/ui.js"></script>
 	<script src="libs/evothings/tisensortag/tisensortag.js"></script>
+  <script src="libs/bootstrap/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -41,52 +45,57 @@
 		</p>
 
 
-		<button type="button" onclick="connect()" class="btn btn-default">
-			Connect
-		</button>
-
-		<button type="button" onclick="disconnect()" class="btn btn-default">
-			Disconnect
-		</button>
-
-		<p>
-			<strong>Status:</strong> <span id="StatusData">Press Connect to find the nearest SensorTag</span>
-		</p>
-
-		<h2>Accelerometer:</h2>
-		<p>
-			<span id="AccelerometerData">[Waiting for value]</span>
-		</p>
-
-		<h2>Gyroscope:</h2>
-		<p>
-			<span id="GyroscopeData">[Waiting for value]</span>
-		</p>
-
-		<h2>Keypress:</h2>
-		<p>
-			<span id="KeypressData">[Waiting for value]</span>
-		</p>
-
-		<h2>Magnetometer:</h2>
-		<p>
-			<span id="MagnetometerData">[Waiting for value]</span>
-		</p>
-
-		<h2>Barometer:</h2>
-		<p>
-			<span id="BarometerData">[Waiting for value]</span>
-		</p>
-
-			<!-- 	<h2>Device info:</h2>
-	<p>
-		SensorTag device model: <span id="DeviceModel">?</span><br />
-		Firmware version: <span id="FirmwareData">?</span>
-	</p> -->
+    <div class="container">
+      <div class="row" style="padding-top:25px;">
+        <div class="col-xs-6" style="border-right: solid thin #000000;">
+          <div class="row centered">
+            <h2>Height</h2>
+          </div>
+          <div class="row centered" >
+            <h1>
+              <span id="heightField" class="measurement">00.0</span>
+              <span class="units">ft.</span>
+            </h1>
+          </div>
+        </div>
+        <div class="col-xs-6" style="border-left: solid thin #000000;">
+          <div class="row centered">
+            <h2>Spin</h2>
+          </div>
+          <div class="row centered">
+            <h1>
+              <span id="spinField" class="measurement">00.0</span>
+              <span class="units">&deg;/s</span>
+            </h1>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+          <div class="startStop centered" id="startButton" onClick="startButtonPress();">
+            <p id="buttonText">Start</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
 	<script>
 	// SensorTag object.
 	var sensortag
+
+  function startButtonPress() {
+    start = document.getElementById('startButton');
+    start.setAttribute('id', 'stopButton');
+    document.getElementById('buttonText').innerHTML = 'Stop';
+    start.setAttribute('onClick', 'stopButtonPress();');
+  }
+
+  function stopButtonPress() {
+    stop = document.getElementById('stopButton');
+    stop.setAttribute('id', 'startButton');
+    document.getElementById('buttonText').innerHTML = 'Start';
+    stop.setAttribute('onClick', 'startButtonPress();');
+  }
 
 	function initialiseSensorTag()
 	{
