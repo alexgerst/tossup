@@ -40,15 +40,10 @@
 		<img class="logotype" src="ui/images/logo.png" alt="Evothings" />
 	</header>
 
-<<<<<<< HEAD
-	<h1>TI SensorTag CC2650 &amp; CC2541 Sensors</h1>
+	<h1>TI SensorTag CC2650_BLUETOOTH_SMART/h1>
 
 	<img src="TISensorTagCC2650.png"
 		style="float:right;width:120px;height:auto;"/>
-
-	<p>
-		This example works with the <strong>TI SensorTag CC2650</strong>. It also works with the TI SensorTag CC2541 if you modify file index.html. Activate the SensorTag and press Connect to begin.
-	</p>
 
 	<p id="upgradeNotice" class="hidden">
 		<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
@@ -71,7 +66,7 @@
 	</p>
 
 	<!--Temporary output element-->
-	<h2>Console:</h2>
+	<!--<h2>Console:</h2>
 	<p>
 		<span id="TestConsole">[Waiting for value]</span>
 	</p>
@@ -109,39 +104,28 @@
 	<h2>Gyroscope:</h2>
 	<p>
 		<span id="GyroscopeData">[Waiting for value]</span>
-	</p>
-
-	<div id="Luxometer">
-		<h2>Luxometer:</h2>
-		<p>
-			<span id="LuxometerData">[Waiting for value]</span>
-=======
-		<p id="upgradeNotice" class="hidden">
-			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
->>>>>>> refs/remotes/origin/feat-datadisplay
-		</p>
-
+	</p>-->
 
     <div class="container">
       <div class="row" style="padding-top:25px;">
         <div class="col-xs-6" style="border-right: solid thin #000000;">
           <div class="row centered">
-            <h2>Height</h2>
+            <h2>Height Score</h2>
           </div>
           <div class="row centered" >
             <h1>
-              <span id="heightField" class="measurement">00.0</span>
+              <span id="heightField" class="measurement">0</span>
               <span class="units">ft.</span>
             </h1>
           </div>
         </div>
         <div class="col-xs-6" style="border-left: solid thin #000000;">
           <div class="row centered">
-            <h2>Spin</h2>
+            <h2>Spin Score</h2>
           </div>
           <div class="row centered">
             <h1>
-              <span id="spinField" class="measurement">00.0</span>
+              <span id="spinField" class="measurement">0</span>
               <span class="units">&deg;/s</span>
             </h1>
           </div>
@@ -160,7 +144,6 @@
 	// SensorTag object.
 	var sensortag
 
-<<<<<<< HEAD
 	// Various variables
 
 	var pressed = false // Button press indicator (default false)
@@ -185,12 +168,12 @@
 	var n_t = 0
 	var n_a = 0
 	var n_c = 0
-=======
   function startButtonPress() {
     start = document.getElementById('startButton');
     start.setAttribute('id', 'stopButton');
     document.getElementById('buttonText').innerHTML = 'Stop';
     start.setAttribute('onClick', 'stopButtonPress();');
+    toggleTracking();
   }
 
   function stopButtonPress() {
@@ -198,8 +181,8 @@
     stop.setAttribute('id', 'startButton');
     document.getElementById('buttonText').innerHTML = 'Start';
     stop.setAttribute('onClick', 'startButtonPress();');
+    toggleTracking();
   }
->>>>>>> refs/remotes/origin/feat-datadisplay
 
 	function initialiseSensorTag()
 	{
@@ -225,15 +208,8 @@
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
 			.keypressCallback(keypressHandler)
-<<<<<<< HEAD
-			.temperatureCallback(temperatureHandler, 1000)
-			.humidityCallback(humidityHandler, 1000)
-			.barometerCallback(barometerHandler, acc_rate)
-			.accelerometerCallback(accelerometerHandler, acc_rate)
-=======
 			.barometerCallback(barometerHandler, 1000)
-			.accelerometerCallback(accelerometerHandler, 1000)
->>>>>>> refs/remotes/origin/feat-datadisplay
+			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.magnetometerCallback(magnetometerHandler, 1000)
 			.gyroscopeCallback(gyroscopeHandler, 1000)
 	}
@@ -307,7 +283,6 @@
 	// Controls the system response to key presses.
 	function keypressHandler(data)
 	{
-<<<<<<< HEAD
 		switch (data[0])
 		{
 			case 0: // This is very cool - basically a 'key released' action.
@@ -329,7 +304,8 @@
 		{
 			stopTracking()
 		} else {
-			displayValue("TestConsole", "Ready")
+			//displayValue("TestConsole", "Ready")
+			displayValue("HeightField", 0)
 		}
 		pressed = !pressed
 		
@@ -350,13 +326,14 @@
 
 		var s = calculateScore(t)
 
-		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
+		//displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
+		displayValue("HeightField", s)
 
 		// Display important info on computer for analysis
-		console.log("Velocity changes: " + v)
+		/*console.log("Velocity changes: " + v)
 		console.log("Time_t: "+time_t)
 		console.log("Time_a: "+time_a)
-		console.log("Time_c: "+time_c)
+		console.log("Time_c: "+time_c)*/
 
 		v = [0]
 		caught = true
@@ -492,13 +469,12 @@
 
 		// Update the value displayed.
 		displayValue('HumidityData', string)
-=======
 		// Update the value displayed.
 		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
 		displayValue('KeypressData', string)
 	}
 
-	function accelerometerHandler(data)
+	/*function accelerometerHandler(data)
 	{
 		// Calculate the x,y,z accelerometer values from raw data.
 		var values = sensortag.getAccelerometerValues(data)
@@ -514,8 +490,7 @@
 
 		// Update the value displayed.
 		displayValue('AccelerometerData', string)
->>>>>>> refs/remotes/origin/feat-datadisplay
-	}
+	}*/
 
 	function magnetometerHandler(data)
 	{
