@@ -1,0 +1,28 @@
+div.centered {
+    text-align: center;
+}
+
+span.units {
+    font-size: 20px;
+}
+
+div.startStop {
+    background-color: #0d6f00;
+    height:100px;
+    vertical-align:middle;
+    border-radius: 10px;
+    margin-top: 25px;
+}
+
+div#startButton {
+    background-color: #0d6f00;
+}
+
+div#stopButton {
+    background-color: red;
+}
+
+#buttonText {
+    color: white;
+    font-size: 35px;
+}
