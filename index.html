@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-	Modified from demonstration of the TI SensorTag JavaScript library.
+	Demonstration of the TI SensorTag JavaScript library.
 -->
 <html>
 
@@ -10,13 +10,10 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no,
 		shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 
-	<title>TossUp</title>
+	<title>TI SensorTag CC2650 &amp; CC2541 Sensors</title>
 
 	<style>
 		@import 'ui/css/evothings-app.css';
-    @import 'libs/bootstrap/bootstrap.min.css';
-    @import 'libs/bootstrap/bootstrap-theme.min.css;';
-    @import 'ui/css/index.css';
 	</style>
 
 	<script>
@@ -28,7 +25,6 @@
 	<script src="libs/evothings/evothings.js"></script>
 	<script src="libs/evothings/ui/ui.js"></script>
 	<script src="libs/evothings/tisensortag/tisensortag.js"></script>
-  <script src="libs/bootstrap/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -37,13 +33,18 @@
 		<button class="back" onclick="history.back()">
 			<img src="ui/images/arrow-left.svg" />
 		</button>
-		<img class="logotype" src="ui/images/logo.png" alt="Evothings" />
+		<img class="logotype" src="ui/images/logo.svg" alt="Evothings" />
+		<!--<button class="menu" onclick=""><img src="ui/images/menu.svg" /></button>-->
 	</header>
 
-	<h1>TI SensorTag CC2650_BLUETOOTH_SMART/h1>
+	<h1>TI SensorTag CC2650 &amp; CC2541 Sensors</h1>
 
 	<img src="TISensorTagCC2650.png"
 		style="float:right;width:120px;height:auto;"/>
+
+	<p>
+		This example works with the <strong>TI SensorTag CC2650</strong>. It also works with the TI SensorTag CC2541 if you modify file index.html. Activate the SensorTag and press Connect to begin.
+	</p>
 
 	<p id="upgradeNotice" class="hidden">
 		<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
@@ -66,7 +67,7 @@
 	</p>
 
 	<!--Temporary output element-->
-	<!--<h2>Console:</h2>
+	<h2>Console:</h2>
 	<p>
 		<span id="TestConsole">[Waiting for value]</span>
 	</p>
@@ -99,46 +100,25 @@
 	<h2>Barometer:</h2>
 	<p>
 		<span id="BarometerData">[Waiting for value]</span>
-	</p>-->
+	</p>
 
-	Gyroscope:</h2>
+	<h2>Gyroscope:</h2>
 	<p>
 		<span id="GyroscopeData">[Waiting for value]</span>
 	</p>
 
-    <div class="container">
-      <div class="row" style="padding-top:25px;">
-        <div class="col-xs-6" style="border-right: solid thin #000000;">
-          <div class="row centered">
-            <h2>Height Score</h2>
-          </div>
-          <div class="row centered" >
-            <h1>
-              <span id="heightField" class="measurement">0</span>
-              <span class="units">ft.</span>
-            </h1>
-          </div>
-        </div>
-        <div class="col-xs-6" style="border-left: solid thin #000000;">
-          <div class="row centered">
-            <h2>Spin Score</h2>
-          </div>
-          <div class="row centered">
-            <h1>
-              <span id="spinField" class="measurement">0</span>
-              <span class="units">&deg;/s</span>
-            </h1>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-10 col-xs-offset-1">
-          <div class="startStop centered" id="startButton" onClick="startButtonPress();">
-            <p id="buttonText">Start</p>
-          </div>
-        </div>
-      </div>
-    </div>
+	<div id="Luxometer">
+		<h2>Luxometer:</h2>
+		<p>
+			<span id="LuxometerData">[Waiting for value]</span>
+		</p>
+	</div>
+
+	<h2>Device info:</h2>
+	<p>
+		SensorTag device model: <span id="DeviceModel">?</span><br />
+		Firmware version: <span id="FirmwareData">?</span>
+	</p>
 
 	<script>
 	// SensorTag object.
@@ -168,27 +148,16 @@
 	var n_t = 0
 	var n_a = 0
 	var n_c = 0
-  function startButtonPress() {
-    start = document.getElementById('startButton');
-    start.setAttribute('id', 'stopButton');
-    document.getElementById('buttonText').innerHTML = 'Stop';
-    start.setAttribute('onClick', 'stopButtonPress();');
-    toggleTracking();
-  }
-
-  function stopButtonPress() {
-    stop = document.getElementById('stopButton');
-    stop.setAttribute('id', 'startButton');
-    document.getElementById('buttonText').innerHTML = 'Start';
-    stop.setAttribute('onClick', 'startButtonPress();');
-    toggleTracking();
-  }
 
 	function initialiseSensorTag()
 	{
 		// Create SensorTag CC2650 instance.
 		sensortag = evothings.tisensortag.createInstance(
 			evothings.tisensortag.CC2650_BLUETOOTH_SMART)
+
+		// Uncomment to use SensorTag CC2541.
+		//sensortag = evothings.tisensortag.createInstance(
+		//	evothings.tisensortag.CC2541_BLUETOOTH_SMART)
 
 		//
 		// Here sensors are set up.
@@ -200,18 +169,17 @@
 		// Several of the sensors take a millisecond update interval
 		// as the second parameter.
 		//
-
-		sensortag.temperatureOff()
-		sensortag.humidityOff()
-		sensortag.luxometerOff()
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
 			.keypressCallback(keypressHandler)
-			.barometerCallback(barometerHandler, 1000)
+			.temperatureCallback(temperatureHandler, 1000)
+			.humidityCallback(humidityHandler, 1000)
+			.barometerCallback(barometerHandler, acc_rate)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.magnetometerCallback(magnetometerHandler, 1000)
 			.gyroscopeCallback(gyroscopeHandler, 1000)
+			.luxometerCallback(luxometerHandler, 1000)
 	}
 
 	function connect()
@@ -223,6 +191,36 @@
 	{
 		sensortag.disconnectDevice()
 		resetSensorDisplayValues()
+	}
+
+	var sensorsOn = true
+
+	function toggleSensors()
+	{
+		if(sensorsOn)
+		{
+			sensortag.keypressOff()
+			sensortag.temperatureOff()
+			sensortag.humidityOff()
+			sensortag.barometerOff()
+			sensortag.accelerometerOff()
+			sensortag.magnetometerOff()
+			sensortag.gyroscopeOff()
+			sensortag.luxometerOff()
+			sensorsOn = false
+		}
+		else
+		{
+			sensortag.keypressOn()
+			sensortag.temperatureOn()
+			sensortag.humidityOn()
+			sensortag.barometerOn()
+			sensortag.accelerometerOn()
+			sensortag.magnetometerOn()
+			sensortag.gyroscopeOn()
+			sensortag.luxometerOn()
+			sensorsOn = true
+		}
 	}
 
 	function statusHandler(status)
@@ -245,8 +243,14 @@
 			}
 
 			// Show device model and firmware version.
-			// displayValue('DeviceModel', sensortag.getDeviceModel())
-			// displayValue('FirmwareData', sensortag.getFirmwareString())
+			displayValue('DeviceModel', sensortag.getDeviceModel())
+			displayValue('FirmwareData', sensortag.getFirmwareString())
+
+			// Show which sensors are not supported by the connected SensorTag.
+			if (!sensortag.isLuxometerAvailable())
+			{
+				document.getElementById('Luxometer').style.display = 'none'
+			}
 		}
 
 		displayValue('StatusData', status)
@@ -271,13 +275,19 @@
 		// Clear current values.
 		var blank = '[Waiting for value]'
 		displayValue('StatusData', 'Press Connect to find a SensorTag')
-		// displayValue('DeviceModel', '?')
-		// displayValue('FirmwareData', '?')
+		displayValue('DeviceModel', '?')
+		displayValue('FirmwareData', '?')
 		displayValue('KeypressData', blank)
+		displayValue('TemperatureData', blank)
 		displayValue('AccelerometerData', blank)
+		displayValue('HumidityData', blank)
 		displayValue('MagnetometerData', blank)
 		displayValue('BarometerData', blank)
 		displayValue('GyroscopeData', blank)
+		displayValue('LuxometerData', blank)
+
+		// Reset screen color.
+		setBackgroundColor('white')
 	}
 
 	// Controls the system response to key presses.
@@ -304,8 +314,7 @@
 		{
 			stopTracking()
 		} else {
-			//displayValue("TestConsole", "Ready")
-			displayValue("HeightField", 0)
+			displayValue("TestConsole", "Ready")
 		}
 		pressed = !pressed
 		
@@ -326,14 +335,13 @@
 
 		var s = calculateScore(t)
 
-		//displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
-		displayValue("HeightField", s)
+		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
 
 		// Display important info on computer for analysis
-		/*console.log("Velocity changes: " + v)
+		console.log("Velocity changes: " + v)
 		console.log("Time_t: "+time_t)
 		console.log("Time_a: "+time_a)
-		console.log("Time_c: "+time_c)*/
+		console.log("Time_c: "+time_c)
 
 		v = [0]
 		caught = true
@@ -469,28 +477,7 @@
 
 		// Update the value displayed.
 		displayValue('HumidityData', string)
-		// Update the value displayed.
-		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
-		displayValue('KeypressData', string)
 	}
-
-	/*function accelerometerHandler(data)
-	{
-		// Calculate the x,y,z accelerometer values from raw data.
-		var values = sensortag.getAccelerometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
-
-		// Prepare the information to display.
-		string =
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + 'G<br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + 'G<br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + 'G<br/>'
-
-		// Update the value displayed.
-		displayValue('AccelerometerData', string)
-	}*/
 
 	function magnetometerHandler(data)
 	{
@@ -500,8 +487,13 @@
 		var y = values.y
 		var z = values.z
 
+		//var model = sensortag.getDeviceModel()
+		//var dataOffset = (model == 2 ? 12 : 0)
+
 		// Prepare the information to display.
 		string =
+			//'raw: <span style="font-family: monospace;">0x' +
+			//	bufferToHexStr(data, dataOffset, 6) + '</span><br/>' +
 			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '&micro;T <br/>' +
 			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '&micro;T <br/>' +
 			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '&micro;T <br/>'
@@ -518,6 +510,8 @@
 
 		// Prepare the information to display.
 		string =
+			//'raw: <span style="font-family: monospace;">0x' +
+			//	bufferToHexStr(data, 0, 4) + '</span><br/>' +
 			'Pressure: ' + pressure.toPrecision(5) + ' mbar<br/>'
 
 		// Update the value displayed.
@@ -534,6 +528,8 @@
 
 		// Prepare the information to display.
 		string =
+			//'raw: <span style="font-family: monospace;">0x' +
+			//	bufferToHexStr(data, 0, 6) + '</span><br/>' +
 			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '<br/>' +
 			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '<br/>' +
 			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '<br/>'
@@ -542,9 +538,29 @@
 		displayValue('GyroscopeData', string)
 	}
 
+	function luxometerHandler(data)
+	{
+		var value = sensortag.getLuxometerValue(data)
+
+		// Prepare the information to display.
+		string =
+			//'raw: <span style="font-family: monospace;">0x' +
+			//	bufferToHexStr(data, 0, 2) + '</span><br/>' +
+			'Light level: ' + value.toPrecision(5) + ' lux<br/>'
+
+		// Update the value displayed.
+		displayValue('LuxometerData', string)
+	}
+
 	function displayValue(elementId, value)
 	{
 		document.getElementById(elementId).innerHTML = value
+	}
+
+	function setBackgroundColor(color)
+	{
+		document.documentElement.style.background = color
+		document.body.style.background = color
 	}
 
 	/**
