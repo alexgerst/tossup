@@ -34,9 +34,6 @@
 <body>
 
 	<header>
-		<button class="back" onclick="history.back()">
-			<img src="ui/images/arrow-left.svg" />
-		</button>
 		<img class="logotype" src="ui/images/logo.png" alt="Evothings" />
 	</header>
 
@@ -45,33 +42,31 @@
 		</p>
 
 
-    <div class="container">
-      <div class="row" style="padding-top:25px;">
-        <div class="col-xs-6" style="border-right: solid thin #000000;">
-          <div class="row centered">
-            <h2>Height</h2>
+    <div class="container-fluid">
+      <div class="col-xs-12">
+        <div class="row" style="padding-top:25px;">
+          <div class="col-xs-4 col-xs-offset-4 centered">
+            <h2 style="padding-top: 20px;">Height</h2>
           </div>
-          <div class="row centered" >
-            <h1>
-              <span id="heightField" class="measurement">00.0</span>
-              <span class="units">ft.</span>
-            </h1>
+          <div class="col-xs-1 col-xs-offset-1">
+            <img src="ui/images/list.png" class="btn btn-default" style= height="60" width="60">
           </div>
         </div>
-        <div class="col-xs-6" style="border-left: solid thin #000000;">
-          <div class="row centered">
-            <h2>Spin</h2>
-          </div>
-          <div class="row centered">
-            <h1>
-              <span id="spinField" class="measurement">00.0</span>
-              <span class="units">&deg;/s</span>
-            </h1>
-          </div>
+        <div class="row centered">
+          <h1>
+            <span id="heightField" class="measurement">437</span>
+            <!--<span class="units">ft.</span>-->
+          </h1>
+        <div class="row centered">
+          <h2>Spin</h2>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-10 col-xs-offset-1">
+        <div class="row centered">
+          <h1>
+            <span id="spinField" class="measurement">441</span>
+            <!--<span class="units">&deg;/s</span>-->
+          </h1>
+        </div>
+        <div class="row centered">
           <div class="startStop centered" id="startButton" onClick="startButtonPress();">
             <p id="buttonText">Start</p>
           </div>
