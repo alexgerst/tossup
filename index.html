@@ -78,6 +78,43 @@
 	// SensorTag object.
 	var sensortag
 
+    // SensorTag connection variables
+    var connected = false   // Whether or not a SensorTag is currently connected
+    var timeout = null      // Timeout for the checkConnection() function
+
+    // setInterval(checkConnection, 500)
+
+    function checkConnection() {
+        // console.log("CONNECTED: " + connected)
+
+        if (sensortag && sensortag.device)
+        {
+            timeout = setTimeout(
+                function() {
+                    connected = false
+                },
+                400
+            )
+
+            sensortag.device.readCharacteristic(
+                "00002a24-0000-1000-8000-00805f9b34fb",
+                function() { 
+                    if (timeout != null) {
+                        clearTimeout(timeout)
+                    }
+                    connected = true
+                },
+                function() {
+                    connected = false
+                }
+            )
+        }
+        else
+        {
+            connected = false
+        }
+    }
+
   function startButtonPress() {
     start = document.getElementById('startButton');
     start.setAttribute('id', 'stopButton');
