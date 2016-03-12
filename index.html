@@ -122,38 +122,48 @@
 
 	<script>
 	// SensorTag object.
-	var sensortag
+	var sensortag;
 
 	// Various variables
 
-	var pressed = false // Button press indicator (default false)
-	var caught = true // Device caught indicator (default true)
-	var peaked = false // Apogee reached indicator (default false)
+	var pressed = false; // Button press indicator (default false)
+	var caught = true; // Device caught indicator (default true)
+	var peaked = false; // Apogee reached indicator (default false)
 
-	var p_acc // Previous z-axis acceleration measurement
+	var p_acc; // Previous z-axis acceleration measurement
 
-	var acc_rate = 100 	// Accelerometer sample rate in ms (1-1000)
+	var acc_rate = 100; 	// Accelerometer sample rate in ms (1-1000)
 
-	var throw_level = 8 //6 // Lower bound for velocity change indicating a throw (large)
-	var catch_level = 2 //2 // Lower bound for velocity change indicating a catch (medium)
-	var peak_level = 0.05 //0.01 // Upper bound for velocity change indicating apogee reached (small)
+	var throw_level = 8; //6 // Lower bound for velocity change indicating a throw (large)
+	var catch_level = 2; //2 // Lower bound for velocity change indicating a catch (medium)
+	var peak_level = 0.05; //0.01 // Upper bound for velocity change indicating apogee reached (small)
 
-	var v = [0] 	// Velocity change measurements (initially 0)
+	var v = [0]; 	// Velocity change measurements (initially 0)
+  var spinAcc = [0];
+	var prevVel = 0;
+  var highSpin = 0;
 
-	var time_s = 0 // Start time variable
-	var time_t = 0 // Throw time variable
-	var time_a = 0 // Apogee time variable 
-	var time_c = 0 // Catch time variable
+	var time_s = 0; // Start time variable
+	var time_t = 0; // Throw time variable
+	var time_a = 0; // Apogee time variable
+	var time_c = 0; // Catch time variable
 
-	var n_t = 0
-	var n_a = 0
-	var n_c = 0
+	var n_t = 0;
+	var n_a = 0;
+	var n_c = 0;
+
+	// Score Limits
+	var maxThrow = 1895; // The highest throw EVER
+	var minThrow = 184; // Pathetic!
+
+	var maxSpin = 281.0;
+	var minSpin = 0.4;
 
 	function initialiseSensorTag()
 	{
 		// Create SensorTag CC2650 instance.
 		sensortag = evothings.tisensortag.createInstance(
-			evothings.tisensortag.CC2650_BLUETOOTH_SMART)
+			evothings.tisensortag.CC2650_BLUETOOTH_SMART);
 
 		// Uncomment to use SensorTag CC2541.
 		//sensortag = evothings.tisensortag.createInstance(
@@ -178,8 +188,8 @@
 			.barometerCallback(barometerHandler, acc_rate)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.magnetometerCallback(magnetometerHandler, 1000)
-			.gyroscopeCallback(gyroscopeHandler, 1000)
-			.luxometerCallback(luxometerHandler, 1000)
+			.gyroscopeCallback(gyroscopeHandler, acc_rate)
+			.luxometerCallback(luxometerHandler, 1000);
 	}
 
 	function connect()
@@ -308,74 +318,81 @@
 	}
 
 	// Toggles data collection mode.
-	function toggleTracking() 
+	function toggleTracking()
 	{
-		if (pressed) 
+		if (pressed)
 		{
 			stopTracking()
 		} else {
 			displayValue("TestConsole", "Ready")
 		}
 		pressed = !pressed
-		
+
 	}
 
 	//Ends tracking, displays values & resets data
-	function stopTracking() 
+	function stopTracking()
 	{
 		//var t = (time_c - time_a) * (acc_rate/1000)
 
-		var t = (time_c - time_a)
+		var t = (time_c - time_a);
 
-		var d = calculateDistance(t)
+		var d = calculateDistance(t);
 
-		var di = d*39.3700787 // meters->inches
-		var df = Math.round(di/12) // feet
-		di = Math.round((di%12)) //inches
+		var di = d*39.3700787; // meters->inches
+		var df = Math.round(di/12); // feet
+		di = Math.round((di%12)); //inches
 
-		var s = calculateScore(t)
+		// Calculate score of spin data
+    var avg = 0;
+    for( var i=0; i<spinAcc.length; i++) {
+      avg+=spinAcc[i];
+    }
+    //avg = avg/spinAcc.length;
+    console.log('Average Spin: '+avg);
+		console.log(spinAcc);
 
-		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+s)
+		var heightScore = calculateScore(t, maxThrow, minThrow);
+		var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
 
-		// Display important info on computer for analysis
-		console.log("Velocity changes: " + v)
-		console.log("Time_t: "+time_t)
-		console.log("Time_a: "+time_a)
-		console.log("Time_c: "+time_c)
+		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+heightScore);
+		displayValue('GyroscopeData', "Spin Score: "+Math.abs(spinScore));
 
-		v = [0]
-		caught = true
-		peaked = false
-		time_s = 0
-		time_a = 0
-		time_c = 0
-		time_t = 0
+		spinAcc = [];
+		HighSpin = 0;
+		prevVel = 0;
 
-		n_t = 0
-		n_a = 0
-		n_c = 0
+		v = [0];
+		caught = true;
+		peaked = false;
+		time_s = 0;
+		time_a = 0;
+		time_c = 0;
+		time_t = 0;
+
+		n_t = 0;
+		n_a = 0;
+		n_c = 0;
 	}
 
-	//Takes a variable representing time in ms, returns a value representing the distance in meters an object falls during that time. 
-	function calculateDistance(t) 
+	//Takes a variable representing time in ms, returns a value representing the distance in meters an object falls during that time.
+	function calculateDistance(t)
 	{
 		return 0.5 * 9.8 * Math.pow(t/1000, 2) // d = 1/2 a(t^2) when vi = 0 (apogee)
 	}
 
 	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
-	function calculateScore(t)
+	function calculateScore(t, max, min)
 	{
-		var max = 1895 // The highest throw EVER
-		var min = 184 // Pathetic!
 
-		var s = Math.round((t/(max-min))*10)
+		var s = Math.round((t/(max-min))*10);
 
-		return (s > 10) ? 10 : s 
+		return (s > 10) ? 10 : s;
 	}
 
 
-	// This is where the magic happens. 
-	function accelerometerHandler(data)		// TODO: Only analyze data after catch? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground? 
+	// This is where the magic happens.
+	function accelerometerHandler(data)		// TODO: Only analyze data after catch? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground?
 	{
 		var values = sensortag.getAccelerometerValues(data)
 		var x = values.x
@@ -409,6 +426,7 @@
 
 			//When caught (and apogee detected):
 			} else if (!caught && peaked && (vChange >= catch_level)) {
+
 				time_c = (new Date()).getTime() - time_s
 				caught = true
 				displayValue("TestConsole", "Caught")
@@ -518,24 +536,34 @@
 		displayValue('BarometerData', string)
 	}
 
+	function median(values) {
+
+    values.sort( function(a,b) {return a - b;} );
+
+    var half = Math.floor(values.length/2);
+
+    if(values.length % 2)
+        return values[half];
+    else
+        return (values[half-1] + values[half]) / 2.0;
+}
+
 	function gyroscopeHandler(data)
 	{
 		// Calculate the gyroscope values from raw sensor data.
-		var values = sensortag.getGyroscopeValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
+		var values = sensortag.getGyroscopeValues(data);
+		var x = values.x;
+		var y = values.y;
+		var z = values.z;
 
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, 0, 6) + '</span><br/>' +
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '<br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '<br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '<br/>'
+		if(pressed) {
+			prevVel = prevVel + acc_rate*z/1000;
 
-		// Update the value displayed.
-		displayValue('GyroscopeData', string)
+			//console.log("accel: "+ z);
+			//console.log("velocity: "+ prevVel);
+      spinAcc.push(prevVel);
+      highSpin = (Math.sqrt(prevVel*prevVel) > Math.sqrt(highSpin*highSpin) ? prevVel : highSpin);
+		}
 	}
 
 	function luxometerHandler(data)
