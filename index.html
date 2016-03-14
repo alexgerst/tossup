@@ -63,7 +63,7 @@
 	</p>
 
 	<p>
-		<button onclick="toggleSensors()" class="charcoal">Toggle sensors</button>
+		<button id='toggleModeSwitch' onclick="toggleMode()" class="charcoal">Switch to Spin Mode</button>
 	</p>
 
 	<!--Temporary output element-->
@@ -77,41 +77,16 @@
 		<span id="AccelerometerData">[Waiting for value]</span>
 	</p>
 
-	<h2>Keypress:</h2>
-	<p>
-		<span id="KeypressData">[Waiting for value]</span>
-	</p>
-
-	<h2>Temperature:</h2>
-	<p>
-		<span id="TemperatureData">[Waiting for value]</span>
-	</p>
-
-	<h2>Humidity:</h2>
-	<p>
-		<span id="HumidityData">[Waiting for value]</span>
-	</p>
-
-	<h2>Magnetometer:</h2>
-	<p>
-		<span id="MagnetometerData">[Waiting for value]</span>
-	</p>
-
-	<h2>Barometer:</h2>
-	<p>
-		<span id="BarometerData">[Waiting for value]</span>
-	</p>
-
 	<h2>Gyroscope:</h2>
 	<p>
 		<span id="GyroscopeData">[Waiting for value]</span>
 	</p>
 
-	<div id="Luxometer">
-		<h2>Luxometer:</h2>
-		<p>
-			<span id="LuxometerData">[Waiting for value]</span>
-		</p>
+	<h2>Keypress:</h2>
+	<p>
+		<span id="KeypressData">[Waiting for value]</span>
+	</p>
+
 	</div>
 
 	<h2>Device info:</h2>
@@ -125,6 +100,7 @@
 	var sensortag;
 
 	// Various variables
+	var tossMode = true;
 
 	var pressed = false; // Button press indicator (default false)
 	var caught = true; // Device caught indicator (default true)
@@ -187,9 +163,7 @@
 			.humidityCallback(humidityHandler, 1000)
 			.barometerCallback(barometerHandler, acc_rate)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
-			.magnetometerCallback(magnetometerHandler, 1000)
-			.gyroscopeCallback(gyroscopeHandler, acc_rate)
-			.luxometerCallback(luxometerHandler, 1000);
+			.gyroscopeCallback(gyroscopeHandler, acc_rate);
 	}
 
 	function connect()
@@ -231,6 +205,18 @@
 			sensortag.luxometerOn()
 			sensorsOn = true
 		}
+	}
+
+	/*
+	 * Switches between throw and spin modes
+	 */
+	function toggleMode(mode) {
+		if (!mode) {
+			tossMode = !tossMode;
+		} else {
+			tossMode = mode
+		}
+		document.getElementById('toggleModeSwitch').innerHTML = "Switch to "+(tossMode ? "Spin Mode" : "Toss Mode");
 	}
 
 	function statusHandler(status)
@@ -288,13 +274,8 @@
 		displayValue('DeviceModel', '?')
 		displayValue('FirmwareData', '?')
 		displayValue('KeypressData', blank)
-		displayValue('TemperatureData', blank)
 		displayValue('AccelerometerData', blank)
-		displayValue('HumidityData', blank)
-		displayValue('MagnetometerData', blank)
-		displayValue('BarometerData', blank)
 		displayValue('GyroscopeData', blank)
-		displayValue('LuxometerData', blank)
 
 		// Reset screen color.
 		setBackgroundColor('white')
@@ -333,46 +314,45 @@
 	//Ends tracking, displays values & resets data
 	function stopTracking()
 	{
-		//var t = (time_c - time_a) * (acc_rate/1000)
+		if (tossMode) {
+			//var t = (time_c - time_a) * (acc_rate/1000)
 
-		var t = (time_c - time_a);
+			var t = (time_c - time_a);
 
-		var d = calculateDistance(t);
+			var d = calculateDistance(t);
 
-		var di = d*39.3700787; // meters->inches
-		var df = Math.round(di/12); // feet
-		di = Math.round((di%12)); //inches
+			var di = d*39.3700787; // meters->inches
+			var df = Math.round(di/12); // feet
+			di = Math.round((di%12)); //inches
 
-		// Calculate score of spin data
-    var avg = 0;
-    for( var i=0; i<spinAcc.length; i++) {
-      avg+=spinAcc[i];
-    }
-    //avg = avg/spinAcc.length;
-    console.log('Average Spin: '+avg);
-		console.log(spinAcc);
+			var heightScore = calculateScore(t, maxThrow, minThrow);
+			displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+heightScore);
 
-		var heightScore = calculateScore(t, maxThrow, minThrow);
-		var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+			v = [0];
+			caught = true;
+			peaked = false;
+			time_s = 0;
+			time_a = 0;
+			time_c = 0;
+			time_t = 0;
 
-		displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+heightScore);
-		displayValue('GyroscopeData', "Spin Score: "+Math.abs(spinScore));
+			n_t = 0;
+			n_a = 0;
+			n_c = 0;
+		} else {
+			// Calculate score of spin data
+	    var avg = 0;
+	    for( var i=0; i<spinAcc.length; i++) {
+	      avg+=spinAcc[i];
+	    }
 
-		spinAcc = [];
-		HighSpin = 0;
-		prevVel = 0;
+			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+			displayValue('GyroscopeData', "Spin Score: "+Math.abs(spinScore));
 
-		v = [0];
-		caught = true;
-		peaked = false;
-		time_s = 0;
-		time_a = 0;
-		time_c = 0;
-		time_t = 0;
-
-		n_t = 0;
-		n_a = 0;
-		n_c = 0;
+			spinAcc = [];
+			HighSpin = 0;
+			prevVel = 0;
+		}
 	}
 
 	//Takes a variable representing time in ms, returns a value representing the distance in meters an object falls during that time.
@@ -394,60 +374,51 @@
 	// This is where the magic happens.
 	function accelerometerHandler(data)		// TODO: Only analyze data after catch? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground?
 	{
-		var values = sensortag.getAccelerometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
+		if (tossMode) {
+			var values = sensortag.getAccelerometerValues(data)
+			var x = values.x
+			var y = values.y
+			var z = values.z
 
-		var tot = z
-		//var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
+			var tot = z
+			//var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
 
-		if (pressed) {
+			if (pressed) {
 
-			// Calculate and store change in velocity
-			var vChange = Math.abs(tot-p_acc)/(acc_rate/1000) // v = a/t
-			v.push(vChange)
+				// Calculate and store change in velocity
+				var vChange = Math.abs(tot-p_acc)/(acc_rate/1000) // v = a/t
+				v.push(vChange)
 
-			//TODO: Count number of throw, catch, and apogee events.
+				//TODO: Count number of throw, catch, and apogee events.
 
-			// When thrown:
-			if (caught && (vChange >= throw_level)) {
-				time_s = (new Date()).getTime()
-				time_t = (new Date()).getTime() - time_s
-				caught = false
-				peaked = false
-				displayValue("TestConsole", "Thrown")
+				// When thrown:
+				if (caught && (vChange >= throw_level)) {
+					time_s = (new Date()).getTime()
+					time_t = (new Date()).getTime() - time_s
+					caught = false
+					peaked = false
+					displayValue("TestConsole", "Thrown")
 
-			//When apogee reached:
-			} else if (!caught && !peaked && (vChange <= peak_level)) {
-				time_a = (new Date()).getTime() - time_s
-				peaked = true
-				displayValue("TestConsole", "Peaked")
+				//When apogee reached:
+				} else if (!caught && !peaked && (vChange <= peak_level)) {
+					time_a = (new Date()).getTime() - time_s
+					peaked = true
+					displayValue("TestConsole", "Peaked")
 
-			//When caught (and apogee detected):
-			} else if (!caught && peaked && (vChange >= catch_level)) {
+				//When caught (and apogee detected):
+				} else if (!caught && peaked && (vChange >= catch_level)) {
 
-				time_c = (new Date()).getTime() - time_s
-				caught = true
-				displayValue("TestConsole", "Caught")
-				toggleTracking() //Don't wait for a button press
+					time_c = (new Date()).getTime() - time_s
+					caught = true
+					displayValue("TestConsole", "Caught")
+					toggleTracking() //Don't wait for a button press
+				}
 
-			/*
-			// When caught (and apogee not detected, e.g. because device is spinning or moving laterally at apogee):
-			// Note: This code is neeeded when the total acceleration on the device (from >1 axis) is used.
-			} else if (!caught && !peaked && (vChange >= catch_level)) {
-				time_c = (new Date()).getTime() - time_s
-				time_a = (time_c-time_t)/2 // Extrapolate apogee time
-				caught = true
-				displayValue("TestConsole", "Caught")
-				toggleTracking() //Don't wait for a button press
-			*/
 			}
 
+			// Update last accelerometer value
+			p_acc = tot
 		}
-
-		// Update last accelerometer value
-		p_acc = tot
 	}
 
 	function temperatureHandler(data)
@@ -468,9 +439,6 @@
 			(ac >= 0 ? '+' : '') + ac.toFixed(2) + '&deg; C ' +
 			'(' + (af >= 0 ? '+' : '') + af.toFixed(2) + '&deg; F) [amb]' +
 			'<br/>'
-
-		// Update the value displayed.
-		displayValue('TemperatureData', string)
 	}
 
 	function humidityHandler(data)
@@ -493,8 +461,6 @@
 			'(' + (tf >= 0 ? '+' : '') + tf.toFixed(2) + '&deg; F)' + '<br/>' +
 			(h >= 0 ? '+' : '') + h.toFixed(2) + '% RH' + '<br/>'
 
-		// Update the value displayed.
-		displayValue('HumidityData', string)
 	}
 
 	function magnetometerHandler(data)
@@ -516,8 +482,6 @@
 			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '&micro;T <br/>' +
 			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '&micro;T <br/>'
 
-		// Update the value displayed.
-		displayValue('MagnetometerData', string)
 	}
 
 	function barometerHandler(data)
@@ -532,8 +496,6 @@
 			//	bufferToHexStr(data, 0, 4) + '</span><br/>' +
 			'Pressure: ' + pressure.toPrecision(5) + ' mbar<br/>'
 
-		// Update the value displayed.
-		displayValue('BarometerData', string)
 	}
 
 	function median(values) {
@@ -550,19 +512,21 @@
 
 	function gyroscopeHandler(data)
 	{
-		// Calculate the gyroscope values from raw sensor data.
-		var values = sensortag.getGyroscopeValues(data);
-		var x = values.x;
-		var y = values.y;
-		var z = values.z;
+		if (!tossMode) {
+			// Calculate the gyroscope values from raw sensor data.
+			var values = sensortag.getGyroscopeValues(data);
+			var x = values.x;
+			var y = values.y;
+			var z = values.z;
 
-		if(pressed) {
-			prevVel = prevVel + acc_rate*z/1000;
+			if(pressed) {
+				prevVel = prevVel + acc_rate*z/1000;
 
-			//console.log("accel: "+ z);
-			//console.log("velocity: "+ prevVel);
-      spinAcc.push(prevVel);
-      highSpin = (Math.sqrt(prevVel*prevVel) > Math.sqrt(highSpin*highSpin) ? prevVel : highSpin);
+				//console.log("accel: "+ z);
+				//console.log("velocity: "+ prevVel);
+	      spinAcc.push(prevVel);
+	      highSpin = (Math.sqrt(prevVel*prevVel) > Math.sqrt(highSpin*highSpin) ? prevVel : highSpin);
+			}
 		}
 	}
 
@@ -576,8 +540,6 @@
 			//	bufferToHexStr(data, 0, 2) + '</span><br/>' +
 			'Light level: ' + value.toPrecision(5) + ' lux<br/>'
 
-		// Update the value displayed.
-		displayValue('LuxometerData', string)
 	}
 
 	function displayValue(elementId, value)
