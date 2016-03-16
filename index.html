@@ -84,6 +84,9 @@
 	// SensorTag object
 	var sensortag
 
+    // SensorTag characteristic id
+    var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+
     // SensorTag connection variables
     var attemptToConnect = false    // Whether or not the user is currently attempting to connect
     var connected = false           // Whether or not a SensorTag is currently connected
@@ -106,7 +109,7 @@
             )
 
             sensortag.device.readCharacteristic(
-                "00002a24-0000-1000-8000-00805f9b34fb",
+                characteristicId,
                 function() { 
                     if (readTimeout != null) {
                         clearTimeout(readTimeout)
@@ -242,6 +245,9 @@
 		}
         if ('CONNECTED' == status)
         {
+            if (readTimeout != null) {
+                clearTimeout(readTimeout)
+            }
             connected = true
         }
         if ('EASYBLE_ERROR_DISCONNECTED' == status)
