@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="viewport" content="width=device-width, user-scalable=no,
+    shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+
+  <title>TossUp</title>
+
+  <style>
+    @import 'ui/css/evothings-app.css';
+    @import 'libs/bootstrap/bootstrap.min.css';
+    @import 'libs/bootstrap/bootstrap-theme.min.css;';
+    @import 'ui/css/index.css';
+    @import 'libs/leaderboard.js';
+  </style>
+
+  <script>
+  // Redirect console.log to Evothings Workbench.
+  if (window.hyper && window.hyper.log) { console.log = hyper.log }
+  </script>
+
+  <script src="cordova.js"></script>
+  <script src="libs/evothings/evothings.js"></script>
+  <script src="libs/evothings/ui/ui.js"></script>
+  <script src="libs/evothings/tisensortag/tisensortag.js"></script>
+  <script src="libs/bootstrap/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <header>
+    <img class="logotype" src="ui/images/logo.png" alt="Evothings" />
+  </header>
+</body>
+</html>
