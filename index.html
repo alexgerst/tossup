@@ -49,7 +49,7 @@
       <div class="col-xs-12">
         <div class="row" style="padding-top:25px;">
           <div class="col-xs-4" style="padding-top:25px;">
-            <input type="checkbox" data-toggle="toggle">
+            <input id="connectCheckbox" type="checkbox" data-toggle="toggle">
           </div>
           <div class="col-xs-4">
             <h2 style="padding-top: 20px;">Height</h2>
@@ -87,16 +87,18 @@
     // SensorTag connection variables
     var attemptToConnect = false    // Whether or not the user is currently attempting to connect
     var connected = false           // Whether or not a SensorTag is currently connected
-    var timeout = null              // Timeout for the checkConnection() function
+    var connecting = false          // Whether or not the app is actively trying to connect
+    var readTimeout = null          // Timeout for reading characteristics
 
-    // setInterval(checkConnection, 500)
+    setInterval(checkConnection, 500)
 
-    function checkConnection() {
-        // console.log("CONNECTED: " + connected)
+    function checkConnection()
+    {
+        attemptToConnect = document.getElementById('connectCheckbox').checked;
 
         if (sensortag && sensortag.device)
         {
-            timeout = setTimeout(
+            readTimeout = setTimeout(
                 function() {
                     connected = false
                 },
@@ -106,8 +108,8 @@
             sensortag.device.readCharacteristic(
                 "00002a24-0000-1000-8000-00805f9b34fb",
                 function() { 
-                    if (timeout != null) {
-                        clearTimeout(timeout)
+                    if (readTimeout != null) {
+                        clearTimeout(readTimeout)
                     }
                     connected = true
                 },
@@ -120,16 +122,49 @@
         {
             connected = false
         }
+
+        if (attemptToConnect)
+        {
+            if (connected)
+            {
+                // set bluetooth-connected.png
+                console.log('checkConnection(): bluetooth-connected')
+            }
+            else
+            {
+                // set bluetooth-connecting.png
+                console.log('checkConnection(): bluetooth-connecting')
+                if (!connecting)
+                {
+                    connecting = true
+                    setTimeout(
+                        function() {
+                            connecting = false
+                        },
+                        5000
+                    )
+                    connect()
+                }
+            }
+        }
+        else
+        {
+            // set bluetooth-off.png
+            console.log('checkConnection(): bluetooth-off')
+            disconnect()
+        }
     }
 
-  function startButtonPress() {
+  function startButtonPress()
+  {
     start = document.getElementById('startButton');
     start.setAttribute('id', 'stopButton');
     document.getElementById('buttonText').innerHTML = 'Stop';
     start.setAttribute('onClick', 'stopButtonPress();');
   }
 
-  function stopButtonPress() {
+  function stopButtonPress()
+  {
     stop = document.getElementById('stopButton');
     stop.setAttribute('id', 'startButton');
     document.getElementById('buttonText').innerHTML = 'Start';
@@ -168,13 +203,18 @@
 
 	function connect()
 	{
-		sensortag.connectToNearestDevice()
+        if (sensortag != null)
+        {
+		    sensortag.connectToNearestDevice()
+        }
 	}
 
 	function disconnect()
 	{
-		sensortag.disconnectDevice()
-		resetSensorDisplayValues()
+        if (sensortag != null)
+        {
+		    sensortag.disconnectDevice()
+        }
 	}
 
 	function statusHandler(status)
@@ -200,6 +240,14 @@
 			// displayValue('DeviceModel', sensortag.getDeviceModel())
 			// displayValue('FirmwareData', sensortag.getFirmwareString())
 		}
+        if ('CONNECTED' == status)
+        {
+            connected = true
+        }
+        if ('EASYBLE_ERROR_DISCONNECTED' == status)
+        {
+            connected = true
+        }
 
 		displayValue('StatusData', status)
 	}
