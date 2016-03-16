@@ -30,70 +30,45 @@
 <body>
 
 	<header>
-		<button class="back" onclick="history.back()">
-			<img src="ui/images/arrow-left.svg" />
-		</button>
-		<img class="logotype" src="ui/images/logo.svg" alt="Evothings" />
-		<!--<button class="menu" onclick=""><img src="ui/images/menu.svg" /></button>-->
+		<img class="logotype" src="ui/images/logo.png" alt="Evothings" />
 	</header>
 
-	<h1>TI SensorTag CC2650 &amp; CC2541 Sensors</h1>
+		<p id="upgradeNotice" class="hidden">
+			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
+		</p>
 
-	<img src="TISensorTagCC2650.png"
-		style="float:right;width:120px;height:auto;"/>
 
-	<p>
-		This example works with the <strong>TI SensorTag CC2650</strong>. It also works with the TI SensorTag CC2541 if you modify file index.html. Activate the SensorTag and press Connect to begin.
-	</p>
-
-	<p id="upgradeNotice" class="hidden">
-		<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
-	</p>
-
-	<button onclick="connect()" class="green">
-		Connect
-	</button>
-
-	<button onclick="disconnect()" class="charcoal">
-		Disconnect
-	</button>
-
-	<p>
-		<strong>Status:</strong> <span id="StatusData">Press Connect to find the nearest SensorTag</span>
-	</p>
-
-	<p>
-		<button id='toggleModeSwitch' onclick="toggleMode()" class="charcoal">Switch to Spin Mode</button>
-	</p>
-
-	<!--Temporary output element-->
-	<h2>Console:</h2>
-	<p>
-		<span id="TestConsole">[Waiting for value]</span>
-	</p>
-
-	<h2>Accelerometer:</h2>
-	<p>
-		<span id="AccelerometerData">[Waiting for value]</span>
-	</p>
-
-	<h2>Gyroscope:</h2>
-	<p>
-		<span id="GyroscopeData">[Waiting for value]</span>
-	</p>
-
-	<h2>Keypress:</h2>
-	<p>
-		<span id="KeypressData">[Waiting for value]</span>
-	</p>
-
-	</div>
-
-	<h2>Device info:</h2>
-	<p>
-		SensorTag device model: <span id="DeviceModel">?</span><br />
-		Firmware version: <span id="FirmwareData">?</span>
-	</p>
+    <div class="container-fluid">
+      <div class="col-xs-12">
+        <div class="row" style="padding-top:25px;">
+          <div class="col-xs-4 col-xs-offset-4 centered">
+            <h2 style="padding-top: 20px;">Height</h2>
+          </div>
+          <div class="col-xs-1 col-xs-offset-1">
+            <img src="ui/images/list.png" class="btn btn-default" style= height="60" width="60">
+          </div>
+        </div>
+        <div class="row centered">
+          <h1>
+            <span id="heightField" class="measurement">437</span>
+            <!--<span class="units">ft.</span>-->
+          </h1>
+        <div class="row centered">
+          <h2>Spin</h2>
+        </div>
+        <div class="row centered">
+          <h1>
+            <span id="spinField" class="measurement">441</span>
+            <!--<span class="units">&deg;/s</span>-->
+          </h1>
+        </div>
+        <div class="row centered">
+          <div class="startStop centered" id="startButton" onClick="startButtonPress();">
+            <p id="buttonText">Start</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
 	<script>
 	// SensorTag object.
@@ -275,7 +250,7 @@
 		displayValue('FirmwareData', '?')
 		displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
-		displayValue('GyroscopeData', blank)
+		displayValue('spinField', blank)
 
 		// Reset screen color.
 		setBackgroundColor('white')
@@ -305,7 +280,7 @@
 		{
 			stopTracking()
 		} else {
-			displayValue("TestConsole", "Ready")
+			displayValue("heightField", "Ready")
 		}
 		pressed = !pressed
 
@@ -326,7 +301,7 @@
 			di = Math.round((di%12)); //inches
 
 			var heightScore = calculateScore(t, maxThrow, minThrow);
-			displayValue('TestConsole', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+heightScore);
+			displayValue('heightField', "Falling time calculation: "+t+" ms "+"Height: "+df+"\' ' "+di+"\""+"\nYour Score: "+heightScore);
 
 			v = [0];
 			caught = true;
@@ -347,7 +322,7 @@
 	    }
 
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
-			displayValue('GyroscopeData', "Spin Score: "+Math.abs(spinScore));
+			displayValue('spinField', "Spin Score: "+Math.abs(spinScore));
 
 			spinAcc = [];
 			HighSpin = 0;
@@ -372,7 +347,7 @@
 
 
 	// This is where the magic happens.
-	function accelerometerHandler(data)		// TODO: Only analyze data after catch? Capture final velocity? Improve distance calculation somehow. Calculate angle with ground?
+	function accelerometerHandler(data)	
 	{
 		if (tossMode) {
 			var values = sensortag.getAccelerometerValues(data)
@@ -389,28 +364,26 @@
 				var vChange = Math.abs(tot-p_acc)/(acc_rate/1000) // v = a/t
 				v.push(vChange)
 
-				//TODO: Count number of throw, catch, and apogee events.
-
 				// When thrown:
 				if (caught && (vChange >= throw_level)) {
 					time_s = (new Date()).getTime()
 					time_t = (new Date()).getTime() - time_s
 					caught = false
 					peaked = false
-					displayValue("TestConsole", "Thrown")
+					displayValue("heightField", "Thrown")
 
 				//When apogee reached:
 				} else if (!caught && !peaked && (vChange <= peak_level)) {
 					time_a = (new Date()).getTime() - time_s
 					peaked = true
-					displayValue("TestConsole", "Peaked")
+					displayValue("heightField", "Peaked")
 
 				//When caught (and apogee detected):
 				} else if (!caught && peaked && (vChange >= catch_level)) {
 
 					time_c = (new Date()).getTime() - time_s
 					caught = true
-					displayValue("TestConsole", "Caught")
+					displayValue("heightField", "Caught")
 					toggleTracking() //Don't wait for a button press
 				}
 
