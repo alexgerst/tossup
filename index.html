@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-	Demonstration of the TI SensorTag JavaScript library.
+	Modified from Demonstration of the TI SensorTag JavaScript library.
 -->
 <html>
 
@@ -10,10 +10,13 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no,
 		shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 
-	<title>TI SensorTag CC2650 &amp; CC2541 Sensors</title>
+	<title>TossUp</title>
 
 	<style>
 		@import 'ui/css/evothings-app.css';
+    @import 'libs/bootstrap/bootstrap.min.css';
+    @import 'libs/bootstrap/bootstrap-theme.min.css;';
+    @import 'ui/css/index.css';
 	</style>
 
 	<script>
@@ -25,6 +28,7 @@
 	<script src="libs/evothings/evothings.js"></script>
 	<script src="libs/evothings/ui/ui.js"></script>
 	<script src="libs/evothings/tisensortag/tisensortag.js"></script>
+  <script src="libs/bootstrap/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -110,6 +114,19 @@
 	var maxSpin = 281.0;
 	var minSpin = 0.4;
 
+	function startButtonPress() {
+	    start = document.getElementById('startButton');
+	    start.setAttribute('id', 'stopButton');
+	    document.getElementById('buttonText').innerHTML = 'Stop';
+	    start.setAttribute('onClick', 'stopButtonPress();');
+	}
+	function stopButtonPress() {
+	    stop = document.getElementById('stopButton');
+	    stop.setAttribute('id', 'startButton');
+	    document.getElementById('buttonText').innerHTML = 'Start';
+	    stop.setAttribute('onClick', 'startButtonPress();');
+	}
+
 	function initialiseSensorTag()
 	{
 		// Create SensorTag CC2650 instance.
@@ -130,13 +147,16 @@
 		// Several of the sensors take a millisecond update interval
 		// as the second parameter.
 		//
+
+		sensortag.temperatureOff();
+		sensortag.humidityOff();
+		sensortag.luxometerOff();
+		sensortag.barometerOff();
+		sensortag.magnetometerOff();
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
 			.keypressCallback(keypressHandler)
-			.temperatureCallback(temperatureHandler, 1000)
-			.humidityCallback(humidityHandler, 1000)
-			.barometerCallback(barometerHandler, acc_rate)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
 			.gyroscopeCallback(gyroscopeHandler, acc_rate);
 	}
@@ -150,36 +170,6 @@
 	{
 		sensortag.disconnectDevice()
 		resetSensorDisplayValues()
-	}
-
-	var sensorsOn = true
-
-	function toggleSensors()
-	{
-		if(sensorsOn)
-		{
-			sensortag.keypressOff()
-			sensortag.temperatureOff()
-			sensortag.humidityOff()
-			sensortag.barometerOff()
-			sensortag.accelerometerOff()
-			sensortag.magnetometerOff()
-			sensortag.gyroscopeOff()
-			sensortag.luxometerOff()
-			sensorsOn = false
-		}
-		else
-		{
-			sensortag.keypressOn()
-			sensortag.temperatureOn()
-			sensortag.humidityOn()
-			sensortag.barometerOn()
-			sensortag.accelerometerOn()
-			sensortag.magnetometerOn()
-			sensortag.gyroscopeOn()
-			sensortag.luxometerOn()
-			sensorsOn = true
-		}
 	}
 
 	/*
@@ -212,16 +202,6 @@
 			{
 				upgradeNotice.classList.add('hidden')
 			}
-
-			// Show device model and firmware version.
-			displayValue('DeviceModel', sensortag.getDeviceModel())
-			displayValue('FirmwareData', sensortag.getFirmwareString())
-
-			// Show which sensors are not supported by the connected SensorTag.
-			if (!sensortag.isLuxometerAvailable())
-			{
-				document.getElementById('Luxometer').style.display = 'none'
-			}
 		}
 
 		displayValue('StatusData', status)
@@ -246,30 +226,19 @@
 		// Clear current values.
 		var blank = '[Waiting for value]'
 		displayValue('StatusData', 'Press Connect to find a SensorTag')
-		displayValue('DeviceModel', '?')
-		displayValue('FirmwareData', '?')
 		displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
 		displayValue('spinField', blank)
-
-		// Reset screen color.
-		setBackgroundColor('white')
 	}
 
 	// Controls the system response to key presses.
 	function keypressHandler(data)
 	{
-		switch (data[0])
-		{
-			case 0: // This is very cool - basically a 'key released' action.
-				break;
-			case 1: // Large button
-				toggleTracking()
-				break;
-			case 2: // Power button
-				break;
-			case 3: // Both 1 and 2
-				break;
+		// Update the value displayed.
+		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
+		displayValue('KeypressData', string)
+		if(data[0]==1) {
+			toggleTracking();
 		}
 	}
 
@@ -347,7 +316,7 @@
 
 
 	// This is where the magic happens.
-	function accelerometerHandler(data)	
+	function accelerometerHandler(data)
 	{
 		if (tossMode) {
 			var values = sensortag.getAccelerometerValues(data)
