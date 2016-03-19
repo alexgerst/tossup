@@ -55,3 +55,11 @@ img.btn-default {
     margin-left:10px;
 }
 
+button.btn-default {
+    margin-top:15px;
+    margin-left:10px;
+    margin-right:10px;
+    line-height:46px;
+    width:60px;
+}
+
