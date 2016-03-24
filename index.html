@@ -13,10 +13,11 @@
 	<title>TossUp</title>
 
 	<style>
+        @import 'libs/bootstrap/bootstrap.min.css';
+        @import 'libs/bootstrap/bootstrap-theme.min.css;';
+        @import 'libs/bootstrap-toggle/bootstrap-toggle.min.css';
 		@import 'ui/css/evothings-app.css';
-    @import 'libs/bootstrap/bootstrap.min.css';
-    @import 'libs/bootstrap/bootstrap-theme.min.css;';
-    @import 'ui/css/index.css';
+        @import 'ui/css/index.css';
 	</style>
 
 	<script>
@@ -28,7 +29,9 @@
 	<script src="libs/evothings/evothings.js"></script>
 	<script src="libs/evothings/ui/ui.js"></script>
 	<script src="libs/evothings/tisensortag/tisensortag.js"></script>
+  <script src="libs/jquery/jquery-2.2.1.min.js"></script>
   <script src="libs/bootstrap/bootstrap.min.js"></script>
+  <script src="libs/bootstrap-toggle/bootstrap-toggle.min.js"></script>
 </head>
 
 <body>
@@ -70,17 +73,93 @@
     </div>
 
 	<script>
-	// SensorTag object.
+	// SensorTag object
 	var sensortag
 
-  function startButtonPress() {
+    // SensorTag characteristic id
+    var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+
+    // SensorTag connection variables
+    var attemptToConnect = false    // Whether or not the user is currently attempting to connect
+    var connected = false           // Whether or not a SensorTag is currently connected
+    var connecting = false          // Whether or not the app is actively trying to connect
+    var readTimeout = null          // Timeout for reading characteristics
+
+    setInterval(checkConnection, 500)
+
+    function checkConnection()
+    {
+        attemptToConnect = document.getElementById('connectCheckbox').checked;
+
+        if (sensortag && sensortag.device)
+        {
+            readTimeout = setTimeout(
+                function() {
+                    connected = false
+                },
+                400
+            )
+
+            sensortag.device.readCharacteristic(
+                characteristicId,
+                function() { 
+                    if (readTimeout != null) {
+                        clearTimeout(readTimeout)
+                    }
+                    connected = true
+                },
+                function() {
+                    connected = false
+                }
+            )
+        }
+        else
+        {
+            connected = false
+        }
+
+        if (attemptToConnect)
+        {
+            if (connected)
+            {
+                // set bluetooth-connected.png
+                console.log('checkConnection(): bluetooth-connected')
+            }
+            else
+            {
+                // set bluetooth-connecting.png
+                console.log('checkConnection(): bluetooth-connecting')
+                if (!connecting)
+                {
+                    connecting = true
+                    setTimeout(
+                        function() {
+                            connecting = false
+                        },
+                        5000
+                    )
+                    connect()
+                }
+            }
+        }
+        else
+        {
+            // set bluetooth-off.png
+            console.log('checkConnection(): bluetooth-off')
+            disconnect()
+        }
+    }
+
+  function startButtonPress()
+  {
     start = document.getElementById('startButton');
     start.setAttribute('id', 'stopButton');
     document.getElementById('buttonText').innerHTML = 'Stop';
     start.setAttribute('onClick', 'stopButtonPress();');
   }
 
-  function stopButtonPress() {
+  function stopButtonPress()
+  {
     stop = document.getElementById('stopButton');
     stop.setAttribute('id', 'startButton');
     document.getElementById('buttonText').innerHTML = 'Start';
@@ -119,13 +198,18 @@
 
 	function connect()
 	{
-		sensortag.connectToNearestDevice()
+        if (sensortag != null)
+        {
+		    sensortag.connectToNearestDevice()
+        }
 	}
 
 	function disconnect()
 	{
-		sensortag.disconnectDevice()
-		resetSensorDisplayValues()
+        if (sensortag != null)
+        {
+		    sensortag.disconnectDevice()
+        }
 	}
 
 	function statusHandler(status)
@@ -151,6 +235,17 @@
 			// displayValue('DeviceModel', sensortag.getDeviceModel())
 			// displayValue('FirmwareData', sensortag.getFirmwareString())
 		}
+        if ('CONNECTED' == status)
+        {
+            if (readTimeout != null) {
+                clearTimeout(readTimeout)
+            }
+            connected = true
+        }
+        if ('EASYBLE_ERROR_DISCONNECTED' == status)
+        {
+            connected = false
+        }
 
 		displayValue('StatusData', status)
 	}
