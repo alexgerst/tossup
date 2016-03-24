@@ -2,8 +2,12 @@ div.centered {
     text-align: center;
 }
 
+h2 {
+    font-size: 50px;
+}
+
 span.measurement {
-    font-size: 95px;
+    font-size: 125px;
     color: #0d6f00;
     font-weight: 600;
 }
@@ -15,8 +19,8 @@ span.units {
 
 div.startStop {
     background-color: #0d6f00;
-    width: 250px;
-    height:100px;
+    width: 275px;
+    height:125px;
     vertical-align:middle;
     border-radius: 10px;
     margin-top: 25px;
@@ -49,5 +53,13 @@ img.btn-default {
     padding:0px;
     margin-top:15px;
     margin-left:10px;
+}
+
+button.btn-default {
+    margin-top:15px;
+    margin-left:10px;
+    margin-right:10px;
+    line-height:46px;
+    width:60px;
 }
 
