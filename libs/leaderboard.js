@@ -1,5 +1,19 @@
-function saveScore(name, score) {
+function saveSpinScore(name, score) {
+    saveScore(name, score, 'spinScores');
+}
 
+function saveHeightScore(name, score) {
+    saveScore(name, score, 'heighScores');
+}
+
+function saveScore(name, score, dbName) {
+    spinScores = loadObject(dbName);
+    var newScore = {
+        name: name,
+        score: score
+    };
+    spinScores.push(newScore);
+    saveObject(dbName, spinScores);
 }
 
 function getHeightScores() {
