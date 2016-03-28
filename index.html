@@ -231,18 +231,16 @@
 		// as the second parameter.
 		//
 
-		sensortag.temperatureOff();
-		sensortag.humidityOff();
-		sensortag.luxometerOff();
-		sensortag.barometerOff();
-		sensortag.magnetometerOff();
-		sensortag.accelerometerOn();
-		sensortag.gyroscopeOn();
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
 			.keypressCallback(keypressHandler)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
+      .temperatureCallback(function(){}, 1000)
+      .barometerCallback(function(){}, 1000)
+      .magnetometerCallback(function(){}, 1000)
+      .humidityCallback(function(){}, 1000)
+      .luxometerCallback(function(){}, 1000)
 			.gyroscopeCallback(gyroscopeHandler, acc_rate);
 	}
 
@@ -305,7 +303,7 @@
             connected = false
         }
 
-		displayValue('StatusData', status)
+		//displayValue('StatusData', status)
 	}
 
 	function errorHandler(error)
@@ -318,7 +316,7 @@
 		}
 		else
 		{
-			displayValue('StatusData', 'Error: ' + error)
+			//displayValue('StatusData', 'Error: ' + error)
 		}
 	}
 
@@ -326,8 +324,8 @@
 	{
 		// Clear current values.
 		var blank = '[Waiting for value]'
-		displayValue('StatusData', 'Press Connect to find a SensorTag')
-		displayValue('KeypressData', blank)
+		//displayValue('StatusData', 'Press Connect to find a SensorTag')
+		//displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
 		displayValue('spinField', blank)
 	}
@@ -455,7 +453,7 @@
 					time_c = (new Date()).getTime() - time_s
 					caught = true
 					displayValue("heightField", "Caught")
-					toggleTracking() //Don't wait for a button press
+					stopButtonPress() //Don't wait for a button press
 				}
 
 			}
@@ -588,7 +586,9 @@
 
 	function displayValue(elementId, value)
 	{
-		document.getElementById(elementId).innerHTML = value
+    if(document.getElementById(elementId)) {
+		  document.getElementById(elementId).innerHTML = value
+    }
 	}
 
 	function setBackgroundColor(color)
