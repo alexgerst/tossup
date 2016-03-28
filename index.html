@@ -92,7 +92,7 @@
 	var caught = true; // Device caught indicator (default true)
 	var peaked = false; // Apogee reached indicator (default false)
 
-	var p_acc; // Previous z-axis acceleration measurement
+	var prevAccel; // Previous z-axis acceleration measurement
 
 	var acc_rate = 100; 	// Accelerometer sample rate in ms (1-1000)
 
@@ -380,7 +380,7 @@
 
 			if (pressed) {
 				// Calculate and store change in velocity
-				var velocityChange = Math.abs(total-p_acc)/(acc_rate/1000)
+				var velocityChange = Math.abs(total-prevAccel)/(acc_rate/1000)
 
 				// When thrown:
 				if (caught && (velocityChange >= throw_level)) {
@@ -408,7 +408,7 @@
 			}
 
 			// Update last accelerometer value
-			p_acc = total
+			prevAccel = total
 		}
 	}
 
