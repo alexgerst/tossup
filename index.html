@@ -100,8 +100,7 @@
 	var catch_level = 2; //2 // Lower bound for velocity change indicating a catch (medium)
 	var peak_level = 0.05; //0.01 // Upper bound for velocity change indicating apogee reached (small)
 
-	var v = [0]; 	// Velocity change measurements (initially 0)
-  var spinAcc = [0];
+  var spinAcc = [0]; // An array containing each instance of acceleration data
 	var prevVel = 0; // The previously logged velocity
 
 	var startTime = 0; // Start time variable
@@ -316,8 +315,6 @@
 	{
 		// Clear current values.
 		var blank = '[Waiting for value]'
-		//displayValue('StatusData', 'Press Connect to find a SensorTag')
-		//displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
 		displayValue('spinField', blank)
 	}
@@ -344,7 +341,6 @@
 			var heightScore = calculateScore(time, maxThrow, minThrow);
 			displayValue('heightField', ""+heightScore);
 
-			v = [0];
 			caught = true;
 			peaked = false;
 			startTime = 0;
@@ -363,9 +359,9 @@
 	}
 
 	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
-	function calculateScore(t, max, min)
+	function calculateScore(time, max, min)
 	{
-		var score = Math.round((t/(max-min))*10);
+		var score = Math.round((time/(max-min))*10);
 
 		return (score > 10) ? 10 : score;
 	}
@@ -384,8 +380,7 @@
 
 			if (pressed) {
 				// Calculate and store change in velocity
-				var velocityChange = Math.abs(total-p_acc)/(acc_rate/1000) // v = a/t
-				v.push(velocityChange)
+				var velocityChange = Math.abs(total-p_acc)/(acc_rate/1000)
 
 				// When thrown:
 				if (caught && (velocityChange >= throw_level)) {
