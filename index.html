@@ -257,13 +257,8 @@
 	/*
 	 * Switches between throw and spin modes
 	 */
-	function toggleMode(mode) {
-		if (!mode) {
-			tossMode = !tossMode;
-		} else {
-			tossMode = mode
-		}
-		document.getElementById('toggleModeSwitch').innerHTML = "Switch to "+(tossMode ? "Spin Mode" : "Toss Mode");
+	function toggleMode() {
+    tossMode = !tossMode;
 	}
 
 	function statusHandler(status)
