@@ -7,8 +7,8 @@ function saveHeightScore(name, score) {
 }
 
 function saveScore(name, score, dbName) {
-    var scores = localStorage[dbName];
-    if(scores === undefined || scores == "") {
+    var scores = loadObject(dbName);
+    if(scores === undefined || scores == '') {
         scores = [];
     }
     var newScore = {
@@ -20,8 +20,8 @@ function saveScore(name, score, dbName) {
 }
 
 function getHeightScores() {
-    scores = localStorage['heightScores'];
-    if(scores === undefined || scores == "") {
+    scores = loadObject('heightScores');
+    if(scores === undefined || scores == '') {
         return [];
     }
     scores.sort(compareScores);
@@ -29,8 +29,8 @@ function getHeightScores() {
 }
 
 function getSpinScores() {
-    var scores = localStorage['spinScores'];
-    if(scores === undefined || scores == "") {
+    var scores = loadObject('spinScores');
+    if(scores === undefined || scores == '') {
         scores = [];
     }
     scores.sort(compareScores);
