@@ -102,113 +102,108 @@
 
 	var v = [0]; 	// Velocity change measurements (initially 0)
   var spinAcc = [0];
-	var prevVel = 0;
-  var highSpin = 0;
+	var prevVel = 0; // The previously logged velocity
 
-	var time_s = 0; // Start time variable
-	var time_t = 0; // Throw time variable
-	var time_a = 0; // Apogee time variable
-	var time_c = 0; // Catch time variable
-
-	var n_t = 0;
-	var n_a = 0;
-	var n_c = 0;
+	var startTime = 0; // Start time variable
+	var thrownTime = 0; // Throw time variable
+	var peakTime = 0; // Apogee time variable
+	var caughtTime = 0; // Catch time variable
 
 	// Score Limits
-	var maxThrow = 1895; // The highest throw EVER
-	var minThrow = 184; // Pathetic!
+	var maxThrow = 1895; // The highest throw
+	var minThrow = 184; // The lowest throw
 
-	var maxSpin = 281.0;
-	var minSpin = 0.4;
+	var maxSpin = 281.0; // The highest spin
+	var minSpin = 0.4; // the lowest spin
 
-    // SensorTag characteristic id
-    var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+  // SensorTag characteristic id
+  var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
 
-    // SensorTag connection variables
-    var attemptToConnect = false    // Whether or not the user is currently attempting to connect
-    var connected = false           // Whether or not a SensorTag is currently connected
-    var connecting = false          // Whether or not the app is actively trying to connect
-    var readTimeout = null          // Timeout for reading characteristics
+  // SensorTag connection variables
+  var attemptToConnect = false    // Whether or not the user is currently attempting to connect
+  var connected = false           // Whether or not a SensorTag is currently connected
+  var connecting = false          // Whether or not the app is actively trying to connect
+  var readTimeout = null          // Timeout for reading characteristics
 
-    setInterval(checkConnection, 500)
+  setInterval(checkConnection, 500)
 
-    function checkConnection()
-    {
-        attemptToConnect = document.getElementById('connectCheckbox').checked;
+  function checkConnection()
+  {
+      attemptToConnect = document.getElementById('connectCheckbox').checked;
 
-        if (sensortag && sensortag.device)
-        {
-            readTimeout = setTimeout(
-                function() {
-                    connected = false
-                },
-                400
-            )
+      if (sensortag && sensortag.device)
+      {
+          readTimeout = setTimeout(
+              function() {
+                  connected = false
+              },
+              400
+          )
 
-            sensortag.device.readCharacteristic(
-                characteristicId,
-                function() {
-                    if (readTimeout != null) {
-                        clearTimeout(readTimeout)
-                    }
-                    connected = true
-                },
-                function() {
-                    connected = false
-                }
-            )
-        }
-        else
-        {
-            connected = false
-        }
+          sensortag.device.readCharacteristic(
+              characteristicId,
+              function() {
+                  if (readTimeout != null) {
+                      clearTimeout(readTimeout)
+                  }
+                  connected = true
+              },
+              function() {
+                  connected = false
+              }
+          )
+      }
+      else
+      {
+          connected = false
+      }
 
-        if (attemptToConnect)
-        {
-            if (connected)
-            {
-                // set bluetooth-connected.png
-                console.log('checkConnection(): bluetooth-connected')
-            }
-            else
-            {
-                // set bluetooth-connecting.png
-                console.log('checkConnection(): bluetooth-connecting')
-                if (!connecting)
-                {
-                    connecting = true
-                    setTimeout(
-                        function() {
-                            connecting = false
-                        },
-                        5000
-                    )
-                    connect()
-                }
-            }
-        }
-        else
-        {
-            // set bluetooth-off.png
-            console.log('checkConnection(): bluetooth-off')
-            disconnect()
-        }
-    }
+      if (attemptToConnect)
+      {
+          if (connected)
+          {
+              // set bluetooth-connected.png
+              console.log('checkConnection(): bluetooth-connected')
+          }
+          else
+          {
+              // set bluetooth-connecting.png
+              console.log('checkConnection(): bluetooth-connecting')
+              if (!connecting)
+              {
+                  connecting = true
+                  setTimeout(
+                      function() {
+                          connecting = false
+                      },
+                      5000
+                  )
+                  connect()
+              }
+          }
+      }
+      else
+      {
+          // set bluetooth-off.png
+          console.log('checkConnection(): bluetooth-off')
+          disconnect()
+      }
+  }
 
-		function startButtonPress() {
-		    start = document.getElementById('startButton');
-		    start.setAttribute('id', 'stopButton');
-		    document.getElementById('buttonText').innerHTML = 'Stop';
-		    start.setAttribute('onClick', 'stopButtonPress();');
-			  toggleTracking();
-		}
-		function stopButtonPress() {
-		    stop = document.getElementById('stopButton');
-		    stop.setAttribute('id', 'startButton');
-		    document.getElementById('buttonText').innerHTML = 'Start';
-		    stop.setAttribute('onClick', 'startButtonPress();');
-			  toggleTracking();
-		}
+  function startButtonPress() {
+      start = document.getElementById('startButton');
+      start.setAttribute('id', 'stopButton');
+      document.getElementById('buttonText').innerHTML = 'Stop';
+      start.setAttribute('onClick', 'stopButtonPress();');
+      toggleTracking();
+  }
+  function stopButtonPress() {
+      stop = document.getElementById('stopButton');
+      stop.setAttribute('id', 'startButton');
+      document.getElementById('buttonText').innerHTML = 'Start';
+      stop.setAttribute('onClick', 'startButtonPress();');
+      toggleTracking();
+  }
 
 	function initialiseSensorTag()
 	{
@@ -234,7 +229,7 @@
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
-			.keypressCallback(keypressHandler)
+      .keypressCallback(function(){}, 1000)
 			.accelerometerCallback(accelerometerHandler, acc_rate)
       .temperatureCallback(function(){}, 1000)
       .barometerCallback(function(){}, 1000)
@@ -302,8 +297,6 @@
         {
             connected = false
         }
-
-		//displayValue('StatusData', status)
 	}
 
 	function errorHandler(error)
@@ -316,7 +309,6 @@
 		}
 		else
 		{
-			//displayValue('StatusData', 'Error: ' + error)
 		}
 	}
 
@@ -328,17 +320,6 @@
 		//displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
 		displayValue('spinField', blank)
-	}
-
-	// Controls the system response to key presses.
-	function keypressHandler(data)
-	{
-		// Update the value displayed.
-		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
-    console.log("key pressed");
-		if(data[0]==1) {
-			//toggleTracking();
-		}
 	}
 
 	// Toggles data collection mode.
@@ -358,37 +339,20 @@
 	function stopTracking()
 	{
 		if (tossMode) {
-			//var t = (time_c - time_a) * (acc_rate/1000)
+			var time = (caughtTime - peakTime);
 
-			var t = (time_c - time_a);
-
-			var d = calculateDistance(t);
-
-			var di = d*39.3700787; // meters->inches
-			var df = Math.round(di/12); // feet
-			di = Math.round((di%12)); //inches
-
-			var heightScore = calculateScore(t, maxThrow, minThrow);
+			var heightScore = calculateScore(time, maxThrow, minThrow);
 			displayValue('heightField', ""+heightScore);
 
 			v = [0];
 			caught = true;
 			peaked = false;
-			time_s = 0;
-			time_a = 0;
-			time_c = 0;
-			time_t = 0;
-
-			n_t = 0;
-			n_a = 0;
-			n_c = 0;
+			startTime = 0;
+			peakTime = 0;
+			caughtTime = 0;
+			thrownTime = 0;
 		} else {
 			// Calculate score of spin data
-	    var avg = 0;
-	    for( var i=0; i<spinAcc.length; i++) {
-	      avg+=spinAcc[i];
-	    }
-
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
 			displayValue('spinField', "Spin Score: "+Math.abs(spinScore));
 
@@ -398,23 +362,16 @@
 		}
 	}
 
-	//Takes a variable representing time in ms, returns a value representing the distance in meters an object falls during that time.
-	function calculateDistance(t)
-	{
-		return 0.5 * 9.8 * Math.pow(t/1000, 2) // d = 1/2 a(t^2) when vi = 0 (apogee)
-	}
-
 	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
 	function calculateScore(t, max, min)
 	{
+		var score = Math.round((t/(max-min))*10);
 
-		var s = Math.round((t/(max-min))*10);
-
-		return (s > 10) ? 10 : s;
+		return (score > 10) ? 10 : score;
 	}
 
 
-	// This is where the magic happens.
+	// Capture the acceleration data
 	function accelerometerHandler(data)
 	{
 		if (tossMode) {
@@ -423,34 +380,31 @@
 			var y = values.y
 			var z = values.z
 
-			var tot = z
-			//var tot = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)+Math.pow(z, 2)) //Magnitude of total acceleration on the device.
+			var total = z
 
 			if (pressed) {
-        console.log("flying");
-
 				// Calculate and store change in velocity
-				var vChange = Math.abs(tot-p_acc)/(acc_rate/1000) // v = a/t
-				v.push(vChange)
+				var velocityChange = Math.abs(total-p_acc)/(acc_rate/1000) // v = a/t
+				v.push(velocityChange)
 
 				// When thrown:
-				if (caught && (vChange >= throw_level)) {
-					time_s = (new Date()).getTime()
-					time_t = (new Date()).getTime() - time_s
+				if (caught && (velocityChange >= throw_level)) {
+					startTime = (new Date()).getTime()
+					thrownTime = (new Date()).getTime() - startTime
 					caught = false
 					peaked = false
 					displayValue("heightField", "Thrown")
 
 				//When apogee reached:
-				} else if (!caught && !peaked && (vChange <= peak_level)) {
-					time_a = (new Date()).getTime() - time_s
+				} else if (!caught && !peaked && (velocityChange <= peak_level)) {
+					peakTime = (new Date()).getTime() - startTime
 					peaked = true
 					displayValue("heightField", "Peaked")
 
 				//When caught (and apogee detected):
-				} else if (!caught && peaked && (vChange >= catch_level)) {
+				} else if (!caught && peaked && (velocityChange >= catch_level)) {
 
-					time_c = (new Date()).getTime() - time_s
+					caughtTime = (new Date()).getTime() - startTime
 					caught = true
 					displayValue("heightField", "Caught")
 					stopButtonPress() //Don't wait for a button press
@@ -459,85 +413,8 @@
 			}
 
 			// Update last accelerometer value
-			p_acc = tot
+			p_acc = total
 		}
-	}
-
-	function temperatureHandler(data)
-	{
-		// Calculate temperature from raw sensor data.
-		var values = sensortag.getTemperatureValues(data)
-		var ac = values.ambientTemperature
-		var af = sensortag.celsiusToFahrenheit(ac)
-		var tc = values.targetTemperature
-		var tf = sensortag.celsiusToFahrenheit(tc)
-
-		// Prepare the information to display.
-		var string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, 0, 4) + '</span><br/>' +
-			(tc >= 0 ? '+' : '') + tc.toFixed(2) + '&deg; C ' +
-			'(' + (tf >= 0 ? '+' : '') + tf.toFixed(2) + '&deg; F)' + '<br/>' +
-			(ac >= 0 ? '+' : '') + ac.toFixed(2) + '&deg; C ' +
-			'(' + (af >= 0 ? '+' : '') + af.toFixed(2) + '&deg; F) [amb]' +
-			'<br/>'
-	}
-
-	function humidityHandler(data)
-	{
-		// Calculate the humidity values from raw data.
-		var values = sensortag.getHumidityValues(data)
-
-		// Calculate the humidity temperature (C and F).
-		var tc = values.humidityTemperature
-		var tf = sensortag.celsiusToFahrenheit(tc)
-
-		// Calculate the relative humidity.
-		var h = values.relativeHumidity
-
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, 0, 4) + '</span><br/>'
-			(tc >= 0 ? '+' : '') + tc.toFixed(2) + '&deg; C ' +
-			'(' + (tf >= 0 ? '+' : '') + tf.toFixed(2) + '&deg; F)' + '<br/>' +
-			(h >= 0 ? '+' : '') + h.toFixed(2) + '% RH' + '<br/>'
-
-	}
-
-	function magnetometerHandler(data)
-	{
-		// Calculate the magnetometer values from raw sensor data.
-		var values = sensortag.getMagnetometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
-
-		//var model = sensortag.getDeviceModel()
-		//var dataOffset = (model == 2 ? 12 : 0)
-
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, dataOffset, 6) + '</span><br/>' +
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '&micro;T <br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '&micro;T <br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '&micro;T <br/>'
-
-	}
-
-	function barometerHandler(data)
-	{
-		// Calculate pressure from raw sensor data.
-		var values = sensortag.getBarometerValues(data)
-		var pressure = values.pressure
-
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, 0, 4) + '</span><br/>' +
-			'Pressure: ' + pressure.toPrecision(5) + ' mbar<br/>'
-
 	}
 
 	function median(values) {
@@ -550,7 +427,7 @@
         return values[half];
     else
         return (values[half-1] + values[half]) / 2.0;
-}
+  }
 
 	function gyroscopeHandler(data)
 	{
@@ -563,25 +440,9 @@
 
 			if(pressed) {
 				prevVel = prevVel + acc_rate*z/1000;
-
-				//console.log("accel: "+ z);
-				//console.log("velocity: "+ prevVel);
 	      spinAcc.push(prevVel);
-	      highSpin = (Math.sqrt(prevVel*prevVel) > Math.sqrt(highSpin*highSpin) ? prevVel : highSpin);
 			}
 		}
-	}
-
-	function luxometerHandler(data)
-	{
-		var value = sensortag.getLuxometerValue(data)
-
-		// Prepare the information to display.
-		string =
-			//'raw: <span style="font-family: monospace;">0x' +
-			//	bufferToHexStr(data, 0, 2) + '</span><br/>' +
-			'Light level: ' + value.toPrecision(5) + ' lux<br/>'
-
 	}
 
 	function displayValue(elementId, value)
@@ -589,44 +450,6 @@
     if(document.getElementById(elementId)) {
 		  document.getElementById(elementId).innerHTML = value
     }
-	}
-
-	function setBackgroundColor(color)
-	{
-		document.documentElement.style.background = color
-		document.body.style.background = color
-	}
-
-	/**
-	 * Convert byte buffer to hex string.
-	 * @param buffer - an Uint8Array
-	 * @param offset - byte offset
-	 * @param numBytes - number of bytes to read
-	 * @return string with hex representation of bytes
-	 */
-	function bufferToHexStr(buffer, offset, numBytes)
-	{
-		var hex = ''
-		for (var i = 0; i < numBytes; ++i)
-		{
-			hex += byteToHexStr(buffer[offset + i])
-		}
-		return hex
-	}
-
-	/**
-	 * Convert byte number to hex string.
-	 */
-	function byteToHexStr(d)
-	{
-		if (d < 0) { d = 0xFF + d + 1 }
-		var hex = Number(d).toString(16)
-		var padding = 2
-		while (hex.length < padding)
-		{
-			hex = '0' + hex
-		}
-		return hex
 	}
 
 	document.addEventListener(
