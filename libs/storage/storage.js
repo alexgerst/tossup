@@ -8,7 +8,12 @@ function saveObject(name, obj) {
 
 function loadObject(name) {
     if(typeof(Storage) !== "undefined") {
-        return JSON.parse(localStorage[name]);
+        var object = localStorage[name];
+        if(object !== undefined) {
+            return JSON.parse(object);
+        } else {
+            return undefined;
+        }
     } else {
         throw "ERROR: LocalStorage unsupported";
     }

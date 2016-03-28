@@ -16,7 +16,7 @@
         @import 'libs/bootstrap/bootstrap.min.css';
         @import 'libs/bootstrap/bootstrap-theme.min.css;';
         @import 'libs/bootstrap-toggle/bootstrap-toggle.min.css';
-		@import 'ui/css/evothings-app.css';
+        @import 'ui/css/evothings-app.css';
         @import 'ui/css/index.css';
 	</style>
 
@@ -32,6 +32,8 @@
   <script src="libs/jquery/jquery-2.2.1.min.js"></script>
   <script src="libs/bootstrap/bootstrap.min.js"></script>
   <script src="libs/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+  <script src="libs/leaderboard.js"></script>
+  <script src="libs/storage/storage.js"></script>
 </head>
 
 <body>
@@ -47,9 +49,7 @@
     <div class="container-fluid">
       <div class="col-xs-12">
         <div class="row" style="padding-top:25px;">
-          <div class="col-xs-2 col-xs-offset-4 centered">
-          </div>
-          <div class="col-xs-1">
+          <div class="col-xs-1 col-xs-offset-6">
             <button id="mode_buttom" class="btn btn-default" onclick="modeToggle()">Spin</button>
           </div>
           <div class="col-xs-1 col-xs-offset-2">
@@ -57,16 +57,22 @@
             href="leaderboard.html" onclick="window.location = 'leaderboard.html';">
           </div>
         </div>
-        <div class="row centered">
-          <h2 id="score_label" style="padding-top: 20px;">Height</h2>
+        <div class="row centered" style="margin:0px;padding:0px;">
+          <h2 id="score_label" style="margin:0px;padding:0px;">Height</h2>
         </div>
-        <div class="row centered">
+        <div class="row centered" style:"margin:0px;padding:0px;">
           <h1>
             <span id="scoreField" class="measurement">437</span>
           </h1>
-        <div class="row centered" style="margin-top:70px;">
+        </div>
+        <div class="row centered" style="margin-top:0px;padding-top:0px">
+          <div class="centered" id="submitButton" onClick="submitButtonPress();">
+            <p class="buttonText">Submit</p>
+          </div>
+        </div>
+        <div class="row centered" style="margin-top:5px;margin-bottom:0px;padding-bottom:0px;">
           <div class="startStop centered" id="startButton" onClick="startButtonPress();">
-            <p id="buttonText">Start</p>
+            <p class="buttonText" id="buttonText" style="margin-bottom:0px;">Start</p>
           </div>
         </div>
       </div>
@@ -102,7 +108,7 @@
 
             sensortag.device.readCharacteristic(
                 characteristicId,
-                function() { 
+                function() {
                     if (readTimeout != null) {
                         clearTimeout(readTimeout)
                     }
@@ -164,6 +170,19 @@
     stop.setAttribute('id', 'startButton');
     document.getElementById('buttonText').innerHTML = 'Start';
     stop.setAttribute('onClick', 'startButtonPress();');
+  }
+
+  function submitButtonPress()
+  {
+    var name = prompt('What is your name?');
+    var score = $('span#scoreField').text();
+    if(heightMode) {
+      saveHeightScore(name, score);
+    } else {
+      saveSpinScore(name, score);
+    }
+    saveObject('heightMode', heightMode);
+    window.location = 'leaderboard.html';
   }
 
 	function initialiseSensorTag()

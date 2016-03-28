@@ -1,0 +1,7 @@
+div.score {
+    text-align: right;
+}
+
+.rank, .name, .score {
+    font-size: 25px;
+}

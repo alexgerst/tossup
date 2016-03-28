@@ -4,12 +4,32 @@ div.centered {
 
 h2 {
     font-size: 50px;
+    padding-top: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+
+h1 {
+    margin: 0px;
+    padding: 0px;
+}
+
+div {
+    padding: 0px;
+    margin: 0px;
+}
+
+span {
+    padding: 0px;
+    margin: 0px;
 }
 
 span.measurement {
     font-size: 125px;
     color: #0d6f00;
-    font-weight: 600;
+    padding:0px;
+    margin:0px;
 }
 
 span.units {
@@ -23,10 +43,12 @@ div.startStop {
     height:125px;
     vertical-align:middle;
     border-radius: 10px;
-    margin-top: 25px;
+    margin-top: 5px;
     margin: 0 auto;
     display: table;
     overflow: hidden;
+    margin-bottom:0px;
+    padding-bottom:0px;
 }
 
 div#startButton {
@@ -37,7 +59,19 @@ div#stopButton {
     background-color: red;
 }
 
-#buttonText {
+div#submitButton {
+    width: 275px;
+    height: 75px;
+    vertical-align: middle;
+    border-radius: 10px;
+    margin: 0 auto;
+    display: table;
+    overflow: hidden;
+    background-color: teal;
+    margin-top:0px;
+}
+
+.buttonText {
     color: white;
     font-size: 35px;
     display: table-cell;

@@ -3,43 +3,48 @@ function saveSpinScore(name, score) {
 }
 
 function saveHeightScore(name, score) {
-    saveScore(name, score, 'heighScores');
+    saveScore(name, score, 'heightScores');
 }
 
 function saveScore(name, score, dbName) {
-    spinScores = loadObject(dbName);
+    var scores = localStorage[dbName];
+    if(scores === undefined || scores == "") {
+        scores = [];
+    }
     var newScore = {
         name: name,
         score: score
     };
-    spinScores.push(newScore);
-    saveObject(dbName, spinScores);
+    scores.push(newScore);
+    saveObject(dbName, scores);
 }
 
 function getHeightScores() {
-    var scores = [];
-    var counter = 0;
-    while ( counter < 10 ) {
-        var score = {
-            name: 'player ' + counter,
-            score: counter * 2;
-        };
-        scores.push(score);
-        counter++;
+    scores = localStorage['heightScores'];
+    if(scores === undefined || scores == "") {
+        return [];
     }
+    scores.sort(compareScores);
     return scores;
 }
 
 function getSpinScores() {
-    var scores = [];
-    var counter = 0;
-    while ( counter < 10 ) {
-        var score = {
-            name: 'player ' + counter,
-            score: counter * 7;
-        };
-        scores.push(score);
-        counter++;
+    var scores = localStorage['spinScores'];
+    if(scores === undefined || scores == "") {
+        scores = [];
     }
+    scores.sort(compareScores);
     return scores;
+}
+
+function compareScores(a, b) {
+    var aScore = parseInt(a.score);
+    var bScore = parseInt(b.score);
+    if(aScore < bScore) {
+        return 1;
+    } else if(aScore > bScore) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
