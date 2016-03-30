@@ -56,8 +56,7 @@
             <button id="mode_button" class="btn btn-default centered" onclick="modeToggle()">Spin</button>
           </div>
           <div class="col-xs-1 col-xs-offset-2">
-            <img src="ui/images/list.png" class="btn btn-default" height="60" width="60"
-            href="leaderboard.html" onclick="window.location = 'leaderboard.html';">
+            <img src="ui/images/list.png" class="btn btn-default" height="60" width="60" href="leaderboard.html" onclick="window.location = 'leaderboard.html';">
           </div>
         </div>
         <div class="row centered" style="margin:0px;padding:0px;">
@@ -359,7 +358,11 @@
 		} else {
 			// Calculate score of spin data
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+<<<<<<< HEAD
 			displayValue('scoreField', "Spin Score: "+Math.abs(spinScore));
+=======
+			displayValue('spinField', Math.abs(spinScore));
+>>>>>>> staging
 
 			spinAcc = [];
 			HighSpin = 0;
