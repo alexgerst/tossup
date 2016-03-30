@@ -79,97 +79,127 @@
     </div>
 
 	<script>
-	// SensorTag object
-	var sensortag
 
-    // SensorTag characteristic id
-    var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+	// SensorTag object.
+	var sensortag;
 
-    // SensorTag connection variables
-    var attemptToConnect = false    // Whether or not the user is currently attempting to connect
-    var connected = false           // Whether or not a SensorTag is currently connected
-    var connecting = false          // Whether or not the app is actively trying to connect
-    var readTimeout = null          // Timeout for reading characteristics
+	// Various variables
+	var tossMode = true;
 
-    setInterval(checkConnection, 500)
+	var pressed = false; // Button press indicator (default false)
+	var caught = true; // Device caught indicator (default true)
+	var peaked = false; // Apogee reached indicator (default false)
 
-    function checkConnection()
-    {
-        attemptToConnect = document.getElementById('connectCheckbox').checked;
+	var prevAccel; // Previous z-axis acceleration measurement
 
-        if (sensortag && sensortag.device)
-        {
-            readTimeout = setTimeout(
-                function() {
-                    connected = false
-                },
-                400
-            )
+	var acc_rate = 100; 	// Accelerometer sample rate in ms (1-1000)
 
-            sensortag.device.readCharacteristic(
-                characteristicId,
-                function() {
-                    if (readTimeout != null) {
-                        clearTimeout(readTimeout)
-                    }
-                    connected = true
-                },
-                function() {
-                    connected = false
-                }
-            )
-        }
-        else
-        {
-            connected = false
-        }
+	var throw_level = 8; //6 // Lower bound for velocity change indicating a throw (large)
+	var catch_level = 2; //2 // Lower bound for velocity change indicating a catch (medium)
+	var peak_level = 0.05; //0.01 // Upper bound for velocity change indicating apogee reached (small)
 
-        if (attemptToConnect)
-        {
-            if (connected)
-            {
-                // set bluetooth-connected.png
-                console.log('checkConnection(): bluetooth-connected')
-            }
-            else
-            {
-                // set bluetooth-connecting.png
-                console.log('checkConnection(): bluetooth-connecting')
-                if (!connecting)
-                {
-                    connecting = true
-                    setTimeout(
-                        function() {
-                            connecting = false
-                        },
-                        5000
-                    )
-                    connect()
-                }
-            }
-        }
-        else
-        {
-            // set bluetooth-off.png
-            console.log('checkConnection(): bluetooth-off')
-            disconnect()
-        }
-    }
+  var spinAcc = [0]; // An array containing each instance of acceleration data
+	var prevVel = 0; // The previously logged velocity
 
-  function startButtonPress()
+	var startTime = 0; // Start time variable
+	var thrownTime = 0; // Throw time variable
+	var peakTime = 0; // Apogee time variable
+	var caughtTime = 0; // Catch time variable
+
+	// Score Limits
+	var maxThrow = 1895; // The highest throw
+	var minThrow = 184; // The lowest throw
+
+	var maxSpin = 281.0; // The highest spin
+	var minSpin = 0.4; // the lowest spin
+
+  // SensorTag characteristic id
+  var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+
+  // SensorTag connection variables
+  var attemptToConnect = false    // Whether or not the user is currently attempting to connect
+  var connected = false           // Whether or not a SensorTag is currently connected
+  var connecting = false          // Whether or not the app is actively trying to connect
+  var readTimeout = null          // Timeout for reading characteristics
+
+  setInterval(checkConnection, 500)
+
+  function checkConnection()
   {
-    start = document.getElementById('startButton');
-    start.setAttribute('id', 'stopButton');
-    document.getElementById('buttonText').innerHTML = 'Stop';
-    start.setAttribute('onClick', 'stopButtonPress();');
+      attemptToConnect = document.getElementById('connectCheckbox').checked;
+
+      if (sensortag && sensortag.device)
+      {
+          readTimeout = setTimeout(
+              function() {
+                  connected = false
+              },
+              400
+          )
+
+          sensortag.device.readCharacteristic(
+              characteristicId,
+              function() {
+                  if (readTimeout != null) {
+                      clearTimeout(readTimeout)
+                  }
+                  connected = true
+              },
+              function() {
+                  connected = false
+              }
+          )
+      }
+      else
+      {
+          connected = false
+      }
+
+      if (attemptToConnect)
+      {
+          if (connected)
+          {
+              // set bluetooth-connected.png
+              console.log('checkConnection(): bluetooth-connected')
+          }
+          else
+          {
+              // set bluetooth-connecting.png
+              console.log('checkConnection(): bluetooth-connecting')
+              if (!connecting)
+              {
+                  connecting = true
+                  setTimeout(
+                      function() {
+                          connecting = false
+                      },
+                      5000
+                  )
+                  connect()
+              }
+          }
+      }
+      else
+      {
+          // set bluetooth-off.png
+          console.log('checkConnection(): bluetooth-off')
+          disconnect()
+      }
   }
 
-  function stopButtonPress()
-  {
-    stop = document.getElementById('stopButton');
-    stop.setAttribute('id', 'startButton');
-    document.getElementById('buttonText').innerHTML = 'Start';
-    stop.setAttribute('onClick', 'startButtonPress();');
+  function startButtonPress() {
+      start = document.getElementById('startButton');
+      start.setAttribute('id', 'stopButton');
+      document.getElementById('buttonText').innerHTML = 'Stop';
+      start.setAttribute('onClick', 'stopButtonPress();');
+      toggleTracking();
+  }
+  function stopButtonPress() {
+      stop = document.getElementById('stopButton');
+      stop.setAttribute('id', 'startButton');
+      document.getElementById('buttonText').innerHTML = 'Start';
+      stop.setAttribute('onClick', 'startButtonPress();');
+      toggleTracking();
   }
 
   function submitButtonPress()
@@ -189,7 +219,11 @@
 	{
 		// Create SensorTag CC2650 instance.
 		sensortag = evothings.tisensortag.createInstance(
-			evothings.tisensortag.CC2650_BLUETOOTH_SMART)
+			evothings.tisensortag.CC2650_BLUETOOTH_SMART);
+
+		// Uncomment to use SensorTag CC2541.
+		//sensortag = evothings.tisensortag.createInstance(
+		//	evothings.tisensortag.CC2541_BLUETOOTH_SMART)
 
 		//
 		// Here sensors are set up.
@@ -202,17 +236,17 @@
 		// as the second parameter.
 		//
 
-		sensortag.temperatureOff()
-		sensortag.humidityOff()
-		sensortag.luxometerOff()
 		sensortag
 			.statusCallback(statusHandler)
 			.errorCallback(errorHandler)
-			.keypressCallback(keypressHandler)
-			.barometerCallback(barometerHandler, 1000)
-			.accelerometerCallback(accelerometerHandler, 1000)
-			.magnetometerCallback(magnetometerHandler, 1000)
-			.gyroscopeCallback(gyroscopeHandler, 1000)
+      .keypressCallback(function(){}, 1000)
+			.accelerometerCallback(accelerometerHandler, acc_rate)
+      .temperatureCallback(function(){}, 1000)
+      .barometerCallback(function(){}, 1000)
+      .magnetometerCallback(function(){}, 1000)
+      .humidityCallback(function(){}, 1000)
+      .luxometerCallback(function(){}, 1000)
+			.gyroscopeCallback(gyroscopeHandler, acc_rate);
 	}
 
 	function connect()
@@ -229,6 +263,13 @@
         {
 		    sensortag.disconnectDevice()
         }
+	}
+
+	/*
+	 * Switches between throw and spin modes
+	 */
+	function toggleMode() {
+    tossMode = !tossMode;
 	}
 
 	function statusHandler(status)
@@ -249,10 +290,6 @@
 			{
 				upgradeNotice.classList.add('hidden')
 			}
-
-			// Show device model and firmware version.
-			// displayValue('DeviceModel', sensortag.getDeviceModel())
-			// displayValue('FirmwareData', sensortag.getFirmwareString())
 		}
         if ('CONNECTED' == status)
         {
@@ -265,8 +302,6 @@
         {
             connected = false
         }
-
-		displayValue('StatusData', status)
 	}
 
 	function errorHandler(error)
@@ -279,7 +314,6 @@
 		}
 		else
 		{
-			displayValue('StatusData', 'Error: ' + error)
 		}
 	}
 
@@ -287,126 +321,136 @@
 	{
 		// Clear current values.
 		var blank = '[Waiting for value]'
-		displayValue('StatusData', 'Press Connect to find a SensorTag')
-		// displayValue('DeviceModel', '?')
-		// displayValue('FirmwareData', '?')
-		displayValue('KeypressData', blank)
 		displayValue('AccelerometerData', blank)
-		displayValue('MagnetometerData', blank)
-		displayValue('BarometerData', blank)
-		displayValue('GyroscopeData', blank)
+		displayValue('spinField', blank)
 	}
 
-	function keypressHandler(data)
+	// Toggles data collection mode.
+	function toggleTracking()
 	{
-		// Update the value displayed.
-		var string = 'raw: 0x' + bufferToHexStr(data, 0, 1)
-		displayValue('KeypressData', string)
+		if (pressed)
+		{
+			stopTracking()
+		} else {
+			displayValue("heightField", "Ready")
+		}
+		pressed = !pressed
+
 	}
 
+	//Ends tracking, displays values & resets data
+	function stopTracking()
+	{
+		if (tossMode) {
+			var time = (caughtTime - peakTime);
+
+			var heightScore = calculateScore(time, maxThrow, minThrow);
+			displayValue('heightField', ""+heightScore);
+
+			caught = true;
+			peaked = false;
+			startTime = 0;
+			peakTime = 0;
+			caughtTime = 0;
+			thrownTime = 0;
+		} else {
+			// Calculate score of spin data
+			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+			displayValue('spinField', "Spin Score: "+Math.abs(spinScore));
+
+			spinAcc = [];
+			HighSpin = 0;
+			prevVel = 0;
+		}
+	}
+
+	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
+	function calculateScore(time, max, min)
+	{
+		var score = Math.round((time/(max-min))*10);
+
+		return (score > 10) ? 10 : score;
+	}
+
+
+	// Capture the acceleration data
 	function accelerometerHandler(data)
 	{
-		// Calculate the x,y,z accelerometer values from raw data.
-		var values = sensortag.getAccelerometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
+		if (tossMode) {
+			var values = sensortag.getAccelerometerValues(data)
+			var x = values.x
+			var y = values.y
+			var z = values.z
 
-		// Prepare the information to display.
-		string =
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + 'G<br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + 'G<br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + 'G<br/>'
+			var total = z
 
-		// Update the value displayed.
-		displayValue('AccelerometerData', string)
+			if (pressed) {
+				// Calculate and store change in velocity
+				var velocityChange = Math.abs(total-prevAccel)/(acc_rate/1000)
+
+				// When thrown:
+				if (caught && (velocityChange >= throw_level)) {
+					startTime = (new Date()).getTime()
+					thrownTime = (new Date()).getTime() - startTime
+					caught = false
+					peaked = false
+					displayValue("heightField", "Thrown")
+
+				//When apogee reached:
+				} else if (!caught && !peaked && (velocityChange <= peak_level)) {
+					peakTime = (new Date()).getTime() - startTime
+					peaked = true
+					displayValue("heightField", "Peaked")
+
+				//When caught (and apogee detected):
+				} else if (!caught && peaked && (velocityChange >= catch_level)) {
+
+					caughtTime = (new Date()).getTime() - startTime
+					caught = true
+					displayValue("heightField", "Caught")
+					stopButtonPress() //Don't wait for a button press
+				}
+
+			}
+
+			// Update last accelerometer value
+			prevAccel = total
+		}
 	}
 
-	function magnetometerHandler(data)
-	{
-		// Calculate the magnetometer values from raw sensor data.
-		var values = sensortag.getMagnetometerValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
+	function median(values) {
 
-		// Prepare the information to display.
-		string =
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '&micro;T <br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '&micro;T <br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '&micro;T <br/>'
+    values.sort( function(a,b) {return a - b;} );
 
-		// Update the value displayed.
-		displayValue('MagnetometerData', string)
-	}
+    var half = Math.floor(values.length/2);
 
-	function barometerHandler(data)
-	{
-		// Calculate pressure from raw sensor data.
-		var values = sensortag.getBarometerValues(data)
-		var pressure = values.pressure
-
-		// Prepare the information to display.
-		string =
-			'Pressure: ' + pressure.toPrecision(5) + ' mbar<br/>'
-
-		// Update the value displayed.
-		displayValue('BarometerData', string)
-	}
+    if(values.length % 2)
+        return values[half];
+    else
+        return (values[half-1] + values[half]) / 2.0;
+  }
 
 	function gyroscopeHandler(data)
 	{
-		// Calculate the gyroscope values from raw sensor data.
-		var values = sensortag.getGyroscopeValues(data)
-		var x = values.x
-		var y = values.y
-		var z = values.z
+		if (!tossMode) {
+			// Calculate the gyroscope values from raw sensor data.
+			var values = sensortag.getGyroscopeValues(data);
+			var x = values.x;
+			var y = values.y;
+			var z = values.z;
 
-		// Prepare the information to display.
-		string =
-			'x: ' + (x >= 0 ? '+' : '') + x.toFixed(5) + '<br/>' +
-			'y: ' + (y >= 0 ? '+' : '') + y.toFixed(5) + '<br/>' +
-			'z: ' + (z >= 0 ? '+' : '') + z.toFixed(5) + '<br/>'
-
-		// Update the value displayed.
-		displayValue('GyroscopeData', string)
+			if(pressed) {
+				prevVel = prevVel + acc_rate*z/1000;
+	      spinAcc.push(prevVel);
+			}
+		}
 	}
 
 	function displayValue(elementId, value)
 	{
-		document.getElementById(elementId).innerHTML = value
-	}
-
-	/**
-	 * Convert byte buffer to hex string.
-	 * @param buffer - an Uint8Array
-	 * @param offset - byte offset
-	 * @param numBytes - number of bytes to read
-	 * @return string with hex representation of bytes
-	 */
-	function bufferToHexStr(buffer, offset, numBytes)
-	{
-		var hex = ''
-		for (var i = 0; i < numBytes; ++i)
-		{
-			hex += byteToHexStr(buffer[offset + i])
-		}
-		return hex
-	}
-
-	/**
-	 * Convert byte number to hex string.
-	 */
-	function byteToHexStr(d)
-	{
-		if (d < 0) { d = 0xFF + d + 1 }
-		var hex = Number(d).toString(16)
-		var padding = 2
-		while (hex.length < padding)
-		{
-			hex = '0' + hex
-		}
-		return hex
+    if(document.getElementById(elementId)) {
+		  document.getElementById(elementId).innerHTML = value
+    }
 	}
 
 	var heightMode = true;
