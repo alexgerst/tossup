@@ -49,8 +49,11 @@
     <div class="container-fluid">
       <div class="col-xs-12">
         <div class="row" style="padding-top:25px;">
-          <div class="col-xs-1 col-xs-offset-6">
-            <button id="mode_buttom" class="btn btn-default centered" onclick="modeToggle()">Spin</button>
+          <div class="col-xs-4" style="padding-top:25px;">
+            <input id="connectCheckbox" type="checkbox" data-toggle="toggle">
+          </div>
+          <div class="col-xs-1 col-xs-offset-2">
+            <button id="mode_button" class="btn btn-default centered" onclick="modeToggle()">Spin</button>
           </div>
           <div class="col-xs-1 col-xs-offset-2">
             <img src="ui/images/list.png" class="btn btn-default" height="60" width="60"
@@ -62,7 +65,7 @@
         </div>
         <div class="row centered" style:"margin:0px;padding:0px;">
           <h1>
-            <span id="scoreField" class="measurement">437</span>
+            <span id="scoreField" class="measurement">0</span>
           </h1>
         </div>
         <div class="row centered" style="margin-top:0px;padding-top:0px">
@@ -322,7 +325,7 @@
 		// Clear current values.
 		var blank = '[Waiting for value]'
 		displayValue('AccelerometerData', blank)
-		displayValue('spinField', blank)
+		displayValue('scoreField', blank)
 	}
 
 	// Toggles data collection mode.
@@ -332,7 +335,7 @@
 		{
 			stopTracking()
 		} else {
-			displayValue("heightField", "Ready")
+			displayValue("scoreField", "Ready")
 		}
 		pressed = !pressed
 
@@ -345,7 +348,7 @@
 			var time = (caughtTime - peakTime);
 
 			var heightScore = calculateScore(time, maxThrow, minThrow);
-			displayValue('heightField', ""+heightScore);
+			displayValue('scoreField', ""+heightScore);
 
 			caught = true;
 			peaked = false;
@@ -356,7 +359,7 @@
 		} else {
 			// Calculate score of spin data
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
-			displayValue('spinField', "Spin Score: "+Math.abs(spinScore));
+			displayValue('scoreField', "Spin Score: "+Math.abs(spinScore));
 
 			spinAcc = [];
 			HighSpin = 0;
@@ -394,20 +397,20 @@
 					thrownTime = (new Date()).getTime() - startTime
 					caught = false
 					peaked = false
-					displayValue("heightField", "Thrown")
+					displayValue("scoreField", "Thrown")
 
 				//When apogee reached:
 				} else if (!caught && !peaked && (velocityChange <= peak_level)) {
 					peakTime = (new Date()).getTime() - startTime
 					peaked = true
-					displayValue("heightField", "Peaked")
+					displayValue("scoreField", "Peaked")
 
 				//When caught (and apogee detected):
 				} else if (!caught && peaked && (velocityChange >= catch_level)) {
 
 					caughtTime = (new Date()).getTime() - startTime
 					caught = true
-					displayValue("heightField", "Caught")
+					displayValue("scoreField", "Caught")
 					stopButtonPress() //Don't wait for a button press
 				}
 
@@ -460,12 +463,12 @@
 	 */
 	function modeToggle(){
 		if (heightMode) {
-			$('#mode_buttom').text("Height");
+			$('#mode_button').text("Height");
 			$('#score_label').text("Spin");
 			$('#scoreField').text("000");
 			heightMode = false;
 		} else {
-			$('#mode_buttom').text("Spin");
+			$('#mode_button').text("Spin");
 			$('#score_label').text("Height");
 			$('#scoreField').text("000");
 			heightMode = true;
