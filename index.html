@@ -208,12 +208,12 @@
   {
     var name = prompt('What is your name?');
     var score = $('span#scoreField').text();
-    if(heightMode) {
+    if(tossMode) {
       saveHeightScore(name, score);
     } else {
       saveSpinScore(name, score);
     }
-    saveObject('heightMode', heightMode);
+    saveObject('tossMode', tossMode);
     window.location = 'leaderboard.html';
   }
 
@@ -267,12 +267,6 @@
         }
 	}
 
-	/*
-	 * Switches between throw and spin modes
-	 */
-	function toggleMode() {
-    tossMode = !tossMode;
-	}
 
 	function statusHandler(status)
 	{
@@ -358,12 +352,7 @@
 		} else {
 			// Calculate score of spin data
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
-<<<<<<< HEAD
-			displayValue('scoreField', "Spin Score: "+Math.abs(spinScore));
-=======
-			displayValue('spinField', Math.abs(spinScore));
->>>>>>> staging
-
+			displayValue('scoreField', Math.abs(spinScore));
 			spinAcc = [];
 			HighSpin = 0;
 			prevVel = 0;
@@ -459,22 +448,20 @@
     }
 	}
 
-	var heightMode = true;
-
 	/**
 	 * toggle between height and spin modes
 	 */
 	function modeToggle(){
-		if (heightMode) {
+		if (tossMode) {
 			$('#mode_button').text("Height");
 			$('#score_label').text("Spin");
 			$('#scoreField').text("000");
-			heightMode = false;
+			tossMode = false;
 		} else {
 			$('#mode_button').text("Spin");
 			$('#score_label').text("Height");
 			$('#scoreField').text("000");
-			heightMode = true;
+			tossMode = true;
 		}
 		
 	}
