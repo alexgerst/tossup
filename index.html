@@ -55,7 +55,7 @@
             <h2 style="padding-top: 20px;">Height</h2>
           </div>
           <div class="col-xs-4">
-            <img src="ui/images/list.png" class="btn btn-default" style= height="60" width="60">
+            <img onclick="toggleMode()" src="ui/images/list.png" class="btn btn-default" style= height="60" width="60">
           </div>
         </div>
         <div class="row centered">
@@ -321,7 +321,7 @@
 		{
 			stopTracking()
 		} else {
-			displayValue("heightField", "Ready")
+			displayValue((tossMode ? "heightField" : "spinField"), "Ready")
 		}
 		pressed = !pressed
 
@@ -345,7 +345,7 @@
 		} else {
 			// Calculate score of spin data
 			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
-			displayValue('spinField', "Spin Score: "+Math.abs(spinScore));
+			displayValue('spinField', Math.abs(spinScore));
 
 			spinAcc = [];
 			HighSpin = 0;
