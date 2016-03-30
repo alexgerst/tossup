@@ -1,107 +1,97 @@
-<!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="viewport" content="width=device-width, user-scalable=no,
-    shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+        <title>TossUp</title>
 
-  <title>TossUp</title>
+        <style>
+            @import 'libs/bootstrap/bootstrap.min.css';
+            @import 'libs/bootstrap/bootstrap-theme.min.css';
+            @import 'libs/bootstrap-toggle/bootstrap-toggle.min.css';
+            @import 'ui/css/evothings-app.css';
+            @import 'ui/css/index.css';
+            @import 'ui/css/leaderboard.css';
+        </style>
 
-  <style>
-    @import 'ui/css/evothings-app.css';
-    @import 'libs/jquery/jquery-2.2.1.min.js';
-    @import 'libs/bootstrap/bootstrap.min.css';
-    @import 'libs/bootstrap/bootstrap-theme.min.css;';
-    @import 'ui/css/index.css';
-    @import 'ui/css/leaderboard.css';
-    @import 'libs/leaderboard.js';
-  </style>
+        <script src="libs/evothings/evothings.js"></script>
+        <script src="libs/evothings/ui/ui.js"></script>
+        <script src="libs/evothings/tisensortag/tisensortag.js"></script>
+        <script src="libs/jquery/jquery-2.2.1.min.js"></script>
+        <script src="libs/bootstrap/bootstrap.min.js"></script>
+        <script src="libs/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+        <script src="libs/tossup/storage.js"></script>
+        <script src="libs/tossup/leaderboard.js"></script>
+    </head>
 
-  <script>
-  // Redirect console.log to Evothings Workbench.
-  if (window.hyper && window.hyper.log) { console.log = hyper.log }
-  </script>
-
-  <script src="cordova.js"></script>
-  <script src="libs/evothings/evothings.js"></script>
-  <script src="libs/evothings/ui/ui.js"></script>
-  <script src="libs/evothings/tisensortag/tisensortag.js"></script>
-  <script src="libs/jquery/jquery-2.2.1.min.js"></script>
-  <script src="libs/bootstrap/bootstrap.min.js"></script>
-  <script src="libs/storage/storage.js"></script>
-  <script src="libs/leaderboard.js"></script>
-</head>
-
-<body>
-  <header>
-    <img class="logotype" src="ui/images/logo.png" alt="Evothings" />
-  </header>
-  <div id="main-container" class="container-fluid">
-    <div class=col-xs-12">
-      <div class="row" style="padding-top:25px;">
-        <div class="col-xs-1 col-xs-offset-6">
-          <button id="mode-button" class="btn btn-default" onclick="modeToggle()"></button>
+    <body>
+        <header>
+            <img class="logotype" src="ui/images/logo.png" alt="Evothings" />
+        </header>
+        <div id="main-container" class="container-fluid">
+            <div class=col-xs-12">
+                <div class="row" style="padding-top:25px;">
+                    <div class="col-xs-1 col-xs-offset-6">
+                        <button id="mode-button" class="btn btn-default" onclick="modeToggle()"></button>
+                    </div>
+                    <div class="col-xs-1 col-xs-offset-2">
+                        <img src="ui/images/list.png" class="btn btn-default" height="60" width="60" href="index.html" onclick="window.location = 'index.html';">
+                    </div>
+                </div>
+                <div class="row centered">
+                    <div class="col-xs-6 col-xs-offset-3 centered">
+                        <h1 id="score-title">Scores</h1>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-xs-1 col-xs-offset-2">
-          <img src="ui/images/list.png" class="btn btn-default" height="60" width="60"
-          href="index.html" onclick="window.location = 'index.html';">
-        </div>
-      </div>
-      <div class="row centered">
-        <div class="col-xs-6 col-xs-offset-3 centered">
-          <h1 id="score-title">Scores</h1>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    function modeToggle() {
-      heightMode = !heightMode;
-      loadPage();
-    }
+        <script>
+            function modeToggle() {
+                heightMode = !heightMode;
+                loadPage();
+            }
 
-    function generateRow(rank, name, score) {
-      var row = $('<div class="row score-row"></div>');
-      var rankDiv = $('<div class="col-xs-1 rank"></div>');
-      rankDiv.append(rank + '.');
-      row.append(rankDiv);
-      var nameDiv = $('<div class="col-xs-5 col-xs-offset-1 name"></div>');
-      nameDiv.append(name);
-      row.append(nameDiv);
-      var scoreDiv = $('<div class="col-xs-3 score"></div>');
-      scoreDiv.append(score);
-      row.append(scoreDiv);
-      return row;
-    }
+            function generateRow(rank, name, score) {
+                var row = $('<div class="row score-row"></div>');
+                var rankDiv = $('<div class="col-xs-1 rank"></div>');
+                rankDiv.append(rank + '.');
+                row.append(rankDiv);
+                var nameDiv = $('<div class="col-xs-5 col-xs-offset-1 name"></div>');
+                nameDiv.append(name);
+                row.append(nameDiv);
+                var scoreDiv = $('<div class="col-xs-3 score"></div>');
+                scoreDiv.append(score);
+                row.append(scoreDiv);
+                return row;
+            }
 
-    function loadPage() {
-      var title = $('#score-title');
-      var button = $('#mode-button');
-      $('.score-row').remove();
-      var scores;
-      if(heightMode) {
-        console.log('test');
-        scores = getHeightScores();
-        console.log('afterscores');
-        title.text('Height Scores');
-        button.text('Spin');
-      } else {
-        scores = getSpinScores();
-        title.text('Spin Scores');
-        button.text('Height');
-      }
-      var counter = 0;
-      while( counter < 10 && scores[counter] !== undefined ) {
-        var score = scores[counter];
-        counter++;
-        $('#main-container').append(generateRow(counter, score.name, score.score));
-      }
-    }
-    heightMode = loadObject('heightMode');
-    loadPage();
-  </script>
-</body>
+            function loadPage() {
+                var title = $('#score-title');
+                var button = $('#mode-button');
+                $('.score-row').remove();
+                var scores;
+                if (heightMode) {
+                    scores = getHeightScores();
+                    title.text('Height Scores');
+                    button.text('Spin');
+                } else {
+                    scores = getSpinScores();
+                    title.text('Spin Scores');
+                    button.text('Height');
+                }
+                var counter = 0;
+                while (counter < 10 && scores[counter] !== undefined) {
+                    var score = scores[counter];
+                    counter++;
+                    $('#main-container').append(generateRow(counter, score.name, score.score));
+                }
+            }
+            heightMode = loadObject('heightMode');
+            loadPage();
+        </script>
+
+    </body>
 </html>
+

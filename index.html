@@ -1,477 +1,387 @@
-<!DOCTYPE html>
-<!--
-	Modified from Demonstration of the TI SensorTag JavaScript library.
--->
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
 
-<head>
-	<meta charset="utf-8" />
-	<meta name="format-detection" content="telephone=no" />
-	<meta name="viewport" content="width=device-width, user-scalable=no,
-		shrink-to-fit=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+        <title>TossUp</title>
 
-	<title>TossUp</title>
+        <style>
+            @import 'libs/bootstrap/bootstrap.min.css';
+            @import 'libs/bootstrap/bootstrap-theme.min.css';
+            @import 'libs/bootstrap-toggle/bootstrap-toggle.min.css';
+            @import 'ui/css/evothings-app.css';
+            @import 'ui/css/index.css';
+        </style>
 
-	<style>
-        @import 'libs/bootstrap/bootstrap.min.css';
-        @import 'libs/bootstrap/bootstrap-theme.min.css;';
-        @import 'libs/bootstrap-toggle/bootstrap-toggle.min.css';
-        @import 'ui/css/evothings-app.css';
-        @import 'ui/css/index.css';
-	</style>
+        <script src="libs/evothings/evothings.js"></script>
+        <script src="libs/evothings/ui/ui.js"></script>
+        <script src="libs/evothings/tisensortag/tisensortag.js"></script>
+        <script src="libs/jquery/jquery-2.2.1.min.js"></script>
+        <script src="libs/bootstrap/bootstrap.min.js"></script>
+        <script src="libs/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+        <script src="libs/tossup/storage.js"></script>
+        <script src="libs/tossup/leaderboard.js"></script>
+    </head>
 
-	<script>
-	// Redirect console.log to Evothings Workbench.
-	if (window.hyper && window.hyper.log) { console.log = hyper.log }
-	</script>
-
-	<script src="cordova.js"></script>
-	<script src="libs/evothings/evothings.js"></script>
-	<script src="libs/evothings/ui/ui.js"></script>
-	<script src="libs/evothings/tisensortag/tisensortag.js"></script>
-  <script src="libs/jquery/jquery-2.2.1.min.js"></script>
-  <script src="libs/bootstrap/bootstrap.min.js"></script>
-  <script src="libs/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-  <script src="libs/leaderboard.js"></script>
-  <script src="libs/storage/storage.js"></script>
-</head>
-
-<body>
-
-	<header>
-		<img class="logotype" src="ui/images/logo.png" alt="Evothings" />
-	</header>
-
-		<p id="upgradeNotice" class="hidden">
-			<span class="color_softred">Please upgrade the firmware of your SensorTag.</span>
-		</p>
-
-    <div class="container-fluid">
-      <div class="col-xs-12">
-        <div class="row" style="padding-top:25px;">
-          <div class="col-xs-4" style="padding-top:25px;">
-            <input id="connectCheckbox" type="checkbox" data-toggle="toggle">
-          </div>
-          <div class="col-xs-1 col-xs-offset-2">
-            <button id="mode_button" class="btn btn-default centered" onclick="modeToggle()">Spin</button>
-          </div>
-          <div class="col-xs-1 col-xs-offset-2">
-            <img src="ui/images/list.png" class="btn btn-default" height="60" width="60" href="leaderboard.html" onclick="window.location = 'leaderboard.html';">
-          </div>
+    <body>
+        <header>
+            <img class="logotype" src="ui/images/logo.png" alt="Evothings" />
+        </header>
+        <div class="container-fluid">
+            <div class="col-xs-12">
+                <div class="row" style="padding-top:25px;">
+                    <div class="col-xs-4" style="padding-top:25px;">
+                        <input id="connectCheckbox" type="checkbox" data-toggle="toggle">
+                    </div>
+                    <div class="col-xs-1 col-xs-offset-2">
+                        <button id="mode_button" class="btn btn-default centered" onclick="modeToggle()">Spin</button>
+                    </div>
+                    <div class="col-xs-1 col-xs-offset-2">
+                        <img src="ui/images/list.png" class="btn btn-default" height="60" width="60" href="leaderboard.html" onclick="window.location = 'leaderboard.html';">
+                    </div>
+                </div>
+                <div class="row centered" style="margin:0px;padding:0px;">
+                    <h2 id="score_label" style="margin:0px;padding:0px;">Height</h2>
+                </div>
+                <div class="row centered" style:"margin:0px;padding:0px;">
+                    <h1>
+                        <span id="scoreField" class="measurement">0</span>
+                    </h1>
+                </div>
+                <div class="row centered" style="margin-top:0px;padding-top:0px">
+                    <div class="centered" id="submitButton" onClick="submitButtonPress();">
+                        <p class="buttonText">Submit</p>
+                    </div>
+                </div>
+                <div class="row centered" style="margin-top:5px;margin-bottom:0px;padding-bottom:0px;">
+                    <div class="startStop centered" id="startButton" onClick="startButtonPress();">
+                        <p class="buttonText" id="buttonText" style="margin-bottom:0px;">Start</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="row centered" style="margin:0px;padding:0px;">
-          <h2 id="score_label" style="margin:0px;padding:0px;">Height</h2>
-        </div>
-        <div class="row centered" style:"margin:0px;padding:0px;">
-          <h1>
-            <span id="scoreField" class="measurement">0</span>
-          </h1>
-        </div>
-        <div class="row centered" style="margin-top:0px;padding-top:0px">
-          <div class="centered" id="submitButton" onClick="submitButtonPress();">
-            <p class="buttonText">Submit</p>
-          </div>
-        </div>
-        <div class="row centered" style="margin-top:5px;margin-bottom:0px;padding-bottom:0px;">
-          <div class="startStop centered" id="startButton" onClick="startButtonPress();">
-            <p class="buttonText" id="buttonText" style="margin-bottom:0px;">Start</p>
-          </div>
-        </div>
-      </div>
-    </div>
 
-	<script>
+        <script>
+            // SensorTag object
+            var sensortag;
 
-	// SensorTag object.
-	var sensortag;
+            // Various variables
+            var tossMode = true;
 
-	// Various variables
-	var tossMode = true;
+            var pressed = false;    // Button press indicator (default false)
+            var caught = true;      // Device caught indicator (default true)
+            var peaked = false;     // Apogee reached indicator (default false)
 
-	var pressed = false; // Button press indicator (default false)
-	var caught = true; // Device caught indicator (default true)
-	var peaked = false; // Apogee reached indicator (default false)
+            var prevAccel;          // Previous z-axis acceleration measurement
 
-	var prevAccel; // Previous z-axis acceleration measurement
+            var acc_rate = 100; 	// Accelerometer sample rate in ms (1-1000)
 
-	var acc_rate = 100; 	// Accelerometer sample rate in ms (1-1000)
+            var throw_level = 8;    // Lower bound for velocity change indicating a throw (large)
+            var catch_level = 2;    // Lower bound for velocity change indicating a catch (medium)
+            var peak_level = 0.05;  // Upper bound for velocity change indicating apogee reached (small)
 
-	var throw_level = 8; //6 // Lower bound for velocity change indicating a throw (large)
-	var catch_level = 2; //2 // Lower bound for velocity change indicating a catch (medium)
-	var peak_level = 0.05; //0.01 // Upper bound for velocity change indicating apogee reached (small)
+            var spinAcc = [0];      // An array containing each instance of acceleration data
+            var prevVel = 0;        // The previously logged velocity
 
-  var spinAcc = [0]; // An array containing each instance of acceleration data
-	var prevVel = 0; // The previously logged velocity
+            var startTime = 0;      // Start time variable
+            var peakTime = 0;       // Apogee time variable
+            var caughtTime = 0;     // Catch time variable
 
-	var startTime = 0; // Start time variable
-	var thrownTime = 0; // Throw time variable
-	var peakTime = 0; // Apogee time variable
-	var caughtTime = 0; // Catch time variable
+            // Score limits
+            var maxThrow = 1895;    // The highest throw
+            var minThrow = 184;     // The lowest throw
 
-	// Score Limits
-	var maxThrow = 1895; // The highest throw
-	var minThrow = 184; // The lowest throw
+            var maxSpin = 281.0;    // The highest spin
+            var minSpin = 0.4;      // the lowest spin
 
-	var maxSpin = 281.0; // The highest spin
-	var minSpin = 0.4; // the lowest spin
+            // SensorTag characteristic id
+            var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb';
 
-  // SensorTag characteristic id
-  var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb'
+            // SensorTag connection variables
+            var attemptToConnect = false;   // Whether or not the user is currently attempting to connect
+            var connected = false;          // Whether or not a SensorTag is currently connected
+            var connecting = false;         // Whether or not the app is actively trying to connect
+            var readTimeout = null;         // Timeout for reading characteristics
 
-  // SensorTag connection variables
-  var attemptToConnect = false    // Whether or not the user is currently attempting to connect
-  var connected = false           // Whether or not a SensorTag is currently connected
-  var connecting = false          // Whether or not the app is actively trying to connect
-  var readTimeout = null          // Timeout for reading characteristics
+            setInterval(checkConnection, 500);
 
-  setInterval(checkConnection, 500)
+            function checkConnection() {
+                attemptToConnect = document.getElementById('connectCheckbox').checked;
 
-  function checkConnection()
-  {
-      attemptToConnect = document.getElementById('connectCheckbox').checked;
+                if (sensortag && sensortag.device) {
+                    readTimeout = setTimeout(
+                        function() {
+                            connected = false;
+                        },
+                        400
+                    );
 
-      if (sensortag && sensortag.device)
-      {
-          readTimeout = setTimeout(
-              function() {
-                  connected = false
-              },
-              400
-          )
+                    sensortag.device.readCharacteristic(
+                        characteristicId,
+                        function() {
+                            if (readTimeout != null) {
+                                clearTimeout(readTimeout);
+                            }
+                            connected = true;
+                        },
+                        function() {
+                            connected = false;
+                        }
+                    );
+                } else {
+                    connected = false;
+                }
 
-          sensortag.device.readCharacteristic(
-              characteristicId,
-              function() {
-                  if (readTimeout != null) {
-                      clearTimeout(readTimeout)
-                  }
-                  connected = true
-              },
-              function() {
-                  connected = false
-              }
-          )
-      }
-      else
-      {
-          connected = false
-      }
-
-      if (attemptToConnect)
-      {
-          if (connected)
-          {
-              // set bluetooth-connected.png
-              console.log('checkConnection(): bluetooth-connected')
-          }
-          else
-          {
-              // set bluetooth-connecting.png
-              console.log('checkConnection(): bluetooth-connecting')
-              if (!connecting)
-              {
-                  connecting = true
-                  setTimeout(
-                      function() {
-                          connecting = false
-                      },
-                      5000
-                  )
-                  connect()
-              }
-          }
-      }
-      else
-      {
-          // set bluetooth-off.png
-          console.log('checkConnection(): bluetooth-off')
-          disconnect()
-      }
-  }
-
-  function startButtonPress() {
-      start = document.getElementById('startButton');
-      start.setAttribute('id', 'stopButton');
-      document.getElementById('buttonText').innerHTML = 'Stop';
-      start.setAttribute('onClick', 'stopButtonPress();');
-      toggleTracking();
-  }
-  function stopButtonPress() {
-      stop = document.getElementById('stopButton');
-      stop.setAttribute('id', 'startButton');
-      document.getElementById('buttonText').innerHTML = 'Start';
-      stop.setAttribute('onClick', 'startButtonPress();');
-      toggleTracking();
-  }
-
-  function submitButtonPress()
-  {
-    var name = prompt('What is your name?');
-    var score = $('span#scoreField').text();
-    if(tossMode) {
-      saveHeightScore(name, score);
-    } else {
-      saveSpinScore(name, score);
-    }
-    saveObject('tossMode', tossMode);
-    window.location = 'leaderboard.html';
-  }
-
-	function initialiseSensorTag()
-	{
-		// Create SensorTag CC2650 instance.
-		sensortag = evothings.tisensortag.createInstance(
-			evothings.tisensortag.CC2650_BLUETOOTH_SMART);
-
-		// Uncomment to use SensorTag CC2541.
-		//sensortag = evothings.tisensortag.createInstance(
-		//	evothings.tisensortag.CC2541_BLUETOOTH_SMART)
-
-		//
-		// Here sensors are set up.
-		//
-		// If you wish to use only one or a few sensors, just set up
-		// the ones you wish to use.
-		//
-		// First parameter to sensor function is the callback function.
-		// Several of the sensors take a millisecond update interval
-		// as the second parameter.
-		//
-
-		sensortag
-			.statusCallback(statusHandler)
-			.errorCallback(errorHandler)
-      .keypressCallback(function(){}, 1000)
-			.accelerometerCallback(accelerometerHandler, acc_rate)
-      .temperatureCallback(function(){}, 1000)
-      .barometerCallback(function(){}, 1000)
-      .magnetometerCallback(function(){}, 1000)
-      .humidityCallback(function(){}, 1000)
-      .luxometerCallback(function(){}, 1000)
-			.gyroscopeCallback(gyroscopeHandler, acc_rate);
-	}
-
-	function connect()
-	{
-        if (sensortag != null)
-        {
-		    sensortag.connectToNearestDevice()
-        }
-	}
-
-	function disconnect()
-	{
-        if (sensortag != null)
-        {
-		    sensortag.disconnectDevice()
-        }
-	}
-
-
-	function statusHandler(status)
-	{
-		if ('DEVICE_INFO_AVAILABLE' == status)
-		{
-			// Show a notification about that the firmware should be
-			// upgraded if the connected device is a SensorTag CC2541
-			// with firmware revision less than 1.5, since this the
-			// SensorTag library does not support these versions.
-			var upgradeNotice = document.getElementById('upgradeNotice')
-			if ('CC2541' == sensortag.getDeviceModel() &&
-				parseFloat(sensortag.getFirmwareString()) < 1.5)
-			{
-				upgradeNotice.classList.remove('hidden')
-			}
-			else
-			{
-				upgradeNotice.classList.add('hidden')
-			}
-		}
-        if ('CONNECTED' == status)
-        {
-            if (readTimeout != null) {
-                clearTimeout(readTimeout)
+                if (attemptToConnect) {
+                    if (connected) {
+                        // set bluetooth-connected.png
+                        console.log('checkConnection(): bluetooth-connected');
+                    } else {
+                        // set bluetooth-connecting.png
+                        console.log('checkConnection(): bluetooth-connecting');
+                        if (!connecting)
+                        {
+                            connecting = true
+                            setTimeout(
+                                function() {
+                                    connecting = false
+                                },
+                                5000
+                            );
+                            connect();
+                        }
+                    }
+                } else {
+                    // set bluetooth-off.png
+                    console.log('checkConnection(): bluetooth-off');
+                    disconnect();
+                }
             }
-            connected = true
-        }
-        if ('EASYBLE_ERROR_DISCONNECTED' == status)
-        {
-            connected = false
-        }
-	}
 
-	function errorHandler(error)
-	{
-		console.log('Error: ' + error)
+            function startButtonPress() {
+                start = document.getElementById('startButton');
+                start.setAttribute('id', 'stopButton');
+                document.getElementById('buttonText').innerHTML = 'Stop';
+                start.setAttribute('onClick', 'stopButtonPress();');
+                toggleTracking();
+            }
 
-		if (evothings.easyble.error.DISCONNECTED == error)
-		{
-			resetSensorDisplayValues()
-		}
-		else
-		{
-		}
-	}
+            function stopButtonPress() {
+                stop = document.getElementById('stopButton');
+                stop.setAttribute('id', 'startButton');
+                document.getElementById('buttonText').innerHTML = 'Start';
+                stop.setAttribute('onClick', 'startButtonPress();');
+                toggleTracking();
+            }
 
-	function resetSensorDisplayValues()
-	{
-		// Clear current values.
-		var blank = '[Waiting for value]'
-		displayValue('AccelerometerData', blank)
-		displayValue('scoreField', blank)
-	}
+            function submitButtonPress()
+            {
+                var name = prompt('What is your name?');
+                var score = $('span#scoreField').text();
+                if(tossMode) {
+                    saveHeightScore(name, score);
+                } else {
+                    saveSpinScore(name, score);
+                }
+                saveObject('tossMode', tossMode);
+                window.location = 'leaderboard.html';
+            }
 
-	// Toggles data collection mode.
-	function toggleTracking()
-	{
-		if (pressed)
-		{
-			stopTracking()
-		} else {
-			displayValue("scoreField", "Ready")
-		}
-		pressed = !pressed
+            function initialiseSensorTag() {
+                sensortag = evothings.tisensortag.createInstance(evothings.tisensortag.CC2650_BLUETOOTH_SMART);
 
-	}
+                sensortag.statusCallback(statusHandler);
+                sensortag.errorCallback(errorHandler);
+                sensortag.accelerometerCallback(accelerometerHandler, acc_rate);
+                sensortag.gyroscopeCallback(gyroscopeHandler, acc_rate);
+                sensortag.keypressCallback(function(){}, 1000);
+                sensortag.temperatureCallback(function(){}, 1000);
+                sensortag.barometerCallback(function(){}, 1000);
+                sensortag.magnetometerCallback(function(){}, 1000);
+                sensortag.humidityCallback(function(){}, 1000);
+                sensortag.luxometerCallback(function(){}, 1000);
+            }
 
-	//Ends tracking, displays values & resets data
-	function stopTracking()
-	{
-		if (tossMode) {
-			var time = (caughtTime - peakTime);
+            function connect() {
+                if (sensortag != null) {
+                    sensortag.connectToNearestDevice();
+                }
+            }
 
-			var heightScore = calculateScore(time, maxThrow, minThrow);
-			displayValue('scoreField', ""+heightScore);
-
-			caught = true;
-			peaked = false;
-			startTime = 0;
-			peakTime = 0;
-			caughtTime = 0;
-			thrownTime = 0;
-		} else {
-			// Calculate score of spin data
-			var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
-			displayValue('scoreField', Math.abs(spinScore));
-			spinAcc = [];
-			HighSpin = 0;
-			prevVel = 0;
-		}
-	}
-
-	//Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible.
-	function calculateScore(time, max, min)
-	{
-		var score = Math.round((time/(max-min))*10);
-
-		return (score > 10) ? 10 : score;
-	}
+            function disconnect() {
+                if (sensortag != null) {
+                    sensortag.disconnectDevice();
+                }
+            }
 
 
-	// Capture the acceleration data
-	function accelerometerHandler(data)
-	{
-		if (tossMode) {
-			var values = sensortag.getAccelerometerValues(data)
-			var x = values.x
-			var y = values.y
-			var z = values.z
+            function statusHandler(status)
+            {
+                console.log(status);
 
-			var total = z
+                if ('CONNECTED' == status)
+                {
+                    if (readTimeout != null) {
+                        clearTimeout(readTimeout);
+                    }
+                    connected = true;
+                }
+                if ('EASYBLE_ERROR_DISCONNECTED' == status)
+                {
+                    connected = false;
+                }
+            }
 
-			if (pressed) {
-				// Calculate and store change in velocity
-				var velocityChange = Math.abs(total-prevAccel)/(acc_rate/1000)
+            function errorHandler(error) {
+                console.log('Error: ' + error);
 
-				// When thrown:
-				if (caught && (velocityChange >= throw_level)) {
-					startTime = (new Date()).getTime()
-					thrownTime = (new Date()).getTime() - startTime
-					caught = false
-					peaked = false
-					displayValue("scoreField", "Thrown")
+                if (evothings.easyble.error.DISCONNECTED == error) {
+                    resetSensorDisplayValues();
+                }
+            }
 
-				//When apogee reached:
-				} else if (!caught && !peaked && (velocityChange <= peak_level)) {
-					peakTime = (new Date()).getTime() - startTime
-					peaked = true
-					displayValue("scoreField", "Peaked")
+            function resetSensorDisplayValues() {
+                // Clear current values
+                var blank = '[Waiting for value]';
+                displayValue('AccelerometerData', blank);
+                displayValue('scoreField', blank);
+            }
 
-				//When caught (and apogee detected):
-				} else if (!caught && peaked && (velocityChange >= catch_level)) {
+            // Toggles data collection mode
+            function toggleTracking() {
+                if (pressed) {
+                    stopTracking();
+                } else {
+                    displayValue("scoreField", "Ready");
+                }
+                pressed = !pressed;
+            }
 
-					caughtTime = (new Date()).getTime() - startTime
-					caught = true
-					displayValue("scoreField", "Caught")
-					stopButtonPress() //Don't wait for a button press
-				}
+            // Ends tracking, displays values & resets data
+            function stopTracking() {
+                if (tossMode) {
+                    var time = (caughtTime - peakTime);
 
-			}
+                    var heightScore = calculateScore(time, maxThrow, minThrow);
+                    displayValue('scoreField', "" + heightScore);
 
-			// Update last accelerometer value
-			prevAccel = total
-		}
-	}
+                    caught = true;
+                    peaked = false;
+                    startTime = 0;
+                    peakTime = 0;
+                    caughtTime = 0;
+                } else {
+                    // Calculate score of spin data
+                    var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+                    displayValue('scoreField', Math.abs(spinScore));
+                    spinAcc = [];
+                    HighSpin = 0;
+                    prevVel = 0;
+                }
+            }
 
-	function median(values) {
+            // Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible
+            function calculateScore(time, max, min) {
+                var score = Math.round((time/(max-min))*10);
 
-    values.sort( function(a,b) {return a - b;} );
+                return (score > 10) ? 10 : score;
+            }
 
-    var half = Math.floor(values.length/2);
+            // Capture the acceleration data
+            function accelerometerHandler(data) {
+                if (tossMode) {
+                    var values = sensortag.getAccelerometerValues(data);
+                    var x = values.x;
+                    var y = values.y;
+                    var z = values.z;
 
-    if(values.length % 2)
-        return values[half];
-    else
-        return (values[half-1] + values[half]) / 2.0;
-  }
+                    var total = z;
 
-	function gyroscopeHandler(data)
-	{
-		if (!tossMode) {
-			// Calculate the gyroscope values from raw sensor data.
-			var values = sensortag.getGyroscopeValues(data);
-			var x = values.x;
-			var y = values.y;
-			var z = values.z;
+                    if (pressed) {
+                        // Calculate and store change in velocity
+                        var velocityChange = Math.abs(total-prevAccel)/(acc_rate/1000);
 
-			if(pressed) {
-				prevVel = prevVel + acc_rate*z/1000;
-	      spinAcc.push(prevVel);
-			}
-		}
-	}
+                        // When thrown
+                        if (caught && (velocityChange >= throw_level)) {
+                            startTime = (new Date()).getTime();
+                            caught = false;
+                            peaked = false;
+                            displayValue("scoreField", "Thrown");
 
-	function displayValue(elementId, value)
-	{
-    if(document.getElementById(elementId)) {
-		  document.getElementById(elementId).innerHTML = value
-    }
-	}
+                        // When apogee reached
+                        } else if (!caught && !peaked && (velocityChange <= peak_level)) {
+                            peakTime = (new Date()).getTime() - startTime;
+                            peaked = true;
+                            displayValue("scoreField", "Peaked");
 
-	/**
-	 * toggle between height and spin modes
-	 */
-	function modeToggle(){
-		if (tossMode) {
-			$('#mode_button').text("Height");
-			$('#score_label').text("Spin");
-			$('#scoreField').text("000");
-			tossMode = false;
-		} else {
-			$('#mode_button').text("Spin");
-			$('#score_label').text("Height");
-			$('#scoreField').text("000");
-			tossMode = true;
-		}
-		
-	}
+                        // When caught (and apogee detected)
+                        } else if (!caught && peaked && (velocityChange >= catch_level)) {
+                            caughtTime = (new Date()).getTime() - startTime;
+                            caught = true;
+                            displayValue("scoreField", "Caught");
+                            stopButtonPress(); // Don't wait for a button press
+                        }
+                    }
 
-	document.addEventListener(
-		'deviceready',
-		function() { evothings.scriptsLoaded(initialiseSensorTag) },
-		false)
-	</script>
+                    // Update last accelerometer value
+                    prevAccel = total;
+                }
+            }
 
-</body>
+            function median(values) {
+                values.sort( function(a,b) {return a - b;} );
 
+                var half = Math.floor(values.length/2);
+
+                if (values.length % 2) {
+                    return values[half];
+                } else {
+                    return (values[half-1] + values[half]) / 2.0;
+                }
+            }
+
+            function gyroscopeHandler(data) {
+                if (!tossMode) {
+                    // Calculate the gyroscope values from raw sensor data.
+                    var values = sensortag.getGyroscopeValues(data);
+                    var x = values.x;
+                    var y = values.y;
+                    var z = values.z;
+
+                    if (pressed) {
+                        prevVel = prevVel + acc_rate*z/1000;
+                        spinAcc.push(prevVel);
+                    }
+                }
+            }
+
+            function displayValue(elementId, value) {
+                if (document.getElementById(elementId)) {
+                    document.getElementById(elementId).innerHTML = value;
+                }
+            }
+
+            function modeToggle() {
+                if (tossMode) {
+                    $('#mode_button').text("Height");
+                    $('#score_label').text("Spin");
+                    $('#scoreField').text("0");
+                    tossMode = false;
+                } else {
+                    $('#mode_button').text("Spin");
+                    $('#score_label').text("Height");
+                    $('#scoreField').text("0");
+                    tossMode = true;
+                }
+            }
+
+            document.addEventListener(
+                'deviceready',
+                function() { evothings.scriptsLoaded(initialiseSensorTag) },
+                false
+            );
+        </script>
+    </body>
 </html>
+

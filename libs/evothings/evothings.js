@@ -2,6 +2,9 @@
 //
 // Here we define common function such as async script loading and OS detection.
 
+// Redirect console.log to Evothings Workbench.
+if (window.hyper && window.hyper.log) { console.log = hyper.log }
+
 ;(function()
 {
 	window.evothings = window.evothings || {};
