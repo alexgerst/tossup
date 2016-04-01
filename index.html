@@ -14,6 +14,7 @@
             @import 'ui/css/index.css';
         </style>
 
+        <script src="cordova.js"></script>
         <script src="libs/evothings/evothings.js"></script>
         <script src="libs/evothings/ui/ui.js"></script>
         <script src="libs/evothings/tisensortag/tisensortag.js"></script>
@@ -122,21 +123,6 @@
                     setTossMode(true);
                 }
             }
-
-            document.addEventListener(
-                'deviceready',
-                function() {
-                    evothings.scriptsLoaded(initializeSensorTag);
-                },
-                false
-            );
-
-            setInterval(
-                function() {
-                    checkConnection(document.getElementById('connectCheckbox').checked);
-                },
-                500
-            );
         </script>
     </body>
 </html>

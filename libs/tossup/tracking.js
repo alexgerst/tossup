@@ -242,3 +242,18 @@ function median(values) {
         return (values[half-1] + values[half]) / 2.0;
     }
 }
+
+document.addEventListener(
+    'deviceready',
+    function() {
+        evothings.scriptsLoaded(initializeSensorTag);
+    },
+    false
+);
+
+setInterval(
+    function() {
+        checkConnection(document.getElementById('connectCheckbox').checked);
+    },
+    500
+);

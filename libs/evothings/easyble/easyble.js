@@ -41,6 +41,11 @@
 	evothings.easyble.error.DESCRIPTOR_NOT_FOUND = 'EASYBLE_ERROR_DESCRIPTOR_NOT_FOUND';
 
 	/**
+	 * @private
+	 */
+	var base64 = cordova.require('cordova/base64');
+
+	/**
 	 * Set to true to report found devices only once,
 	 * set to false to report continuously.
 	 * @private
@@ -340,6 +345,36 @@
 			{
 				advertisementData.kCBAdvDataTxPowerLevel =
 					evothings.util.littleEndianToInt8(byteArray, pos);
+			}
+			if (type == 0x16) // Service Data, 16-bit UUID.
+			{
+				serviceData = serviceData ? serviceData : {};
+				var uuid =
+					'0000' +
+					evothings.util.toHexString(
+						evothings.util.littleEndianToUint16(byteArray, pos),
+						2) +
+					BLUETOOTH_BASE_UUID;
+				var data = new Uint8Array(byteArray.buffer, pos+2, length-2);
+				serviceData[uuid] = base64.fromArrayBuffer(data);
+			}
+			if (type == 0x20) // Service Data, 32-bit UUID.
+			{
+				serviceData = serviceData ? serviceData : {};
+				var uuid =
+					evothings.util.toHexString(
+						evothings.util.littleEndianToUint32(byteArray, pos),
+						4) +
+					BLUETOOTH_BASE_UUID;
+				var data = new Uint8Array(byteArray.buffer, pos+4, length-4);
+				serviceData[uuid] = base64.fromArrayBuffer(data);
+			}
+			if (type == 0x21) // Service Data, 128-bit UUID.
+			{
+				serviceData = serviceData ? serviceData : {};
+				var uuid = arrayToUUID(byteArray, pos);
+				var data = new Uint8Array(byteArray.buffer, pos+16, length-16);
+				serviceData[uuid] = base64.fromArrayBuffer(data);
 			}
 			if (type == 0xff) // Manufacturer-specific Data.
 			{
