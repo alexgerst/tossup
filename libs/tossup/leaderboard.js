@@ -8,7 +8,7 @@ function saveHeightScore(name, score) {
 
 function saveScore(name, score, dbName) {
     var scores = loadObject(dbName);
-    if(scores === undefined || scores == '') {
+    if (scores === undefined || scores == '') {
         scores = [];
     }
     var newScore = {
@@ -21,7 +21,7 @@ function saveScore(name, score, dbName) {
 
 function getHeightScores() {
     scores = loadObject('heightScores');
-    if(scores === undefined || scores == '') {
+    if (scores === undefined || scores == '') {
         return [];
     }
     scores.sort(compareScores);
@@ -30,7 +30,7 @@ function getHeightScores() {
 
 function getSpinScores() {
     var scores = loadObject('spinScores');
-    if(scores === undefined || scores == '') {
+    if (scores === undefined || scores == '') {
         scores = [];
     }
     scores.sort(compareScores);
@@ -40,11 +40,12 @@ function getSpinScores() {
 function compareScores(a, b) {
     var aScore = parseInt(a.score);
     var bScore = parseInt(b.score);
-    if(aScore < bScore) {
+    if (aScore < bScore) {
         return 1;
-    } else if(aScore > bScore) {
+    } else if (aScore > bScore) {
         return -1;
     } else {
         return 0;
     }
 }
+
