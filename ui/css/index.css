@@ -1,0 +1,99 @@
+div.centered {
+    text-align: center;
+}
+
+h2 {
+    font-size: 50px;
+    padding-top: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+
+h1 {
+    margin: 0px;
+    padding: 0px;
+}
+
+div {
+    padding: 0px;
+    margin: 0px;
+}
+
+span {
+    padding: 0px;
+    margin: 0px;
+}
+
+span.measurement {
+    font-size: 125px;
+    color: #0d6f00;
+    padding:0px;
+    margin:0px;
+}
+
+span.units {
+    font-size: 20px;
+    color: #0d6f00;
+}
+
+div.startStop {
+    background-color: #0d6f00;
+    width: 275px;
+    height:125px;
+    vertical-align:middle;
+    border-radius: 10px;
+    margin-top: 5px;
+    margin: 0 auto;
+    display: table;
+    overflow: hidden;
+    margin-bottom:0px;
+    padding-bottom:0px;
+}
+
+div#startButton {
+    background-color: #0d6f00;
+}
+
+div#stopButton {
+    background-color: red;
+}
+
+div#submitButton {
+    width: 275px;
+    height: 75px;
+    vertical-align: middle;
+    border-radius: 10px;
+    margin: 0 auto;
+    display: table;
+    overflow: hidden;
+    background-color: teal;
+    margin-top:0px;
+}
+
+.buttonText {
+    color: white;
+    font-size: 35px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+img.controlButton {
+    height: 25px;
+    width: 25px;
+}
+
+img.btn-default {
+    padding:0px;
+    margin-top:15px;
+    margin-left:10px;
+}
+
+button.btn-default {
+    margin-top:15px;
+    margin-left:10px;
+    margin-right:10px;
+    line-height:46px;
+    width:60px;
+}
+
