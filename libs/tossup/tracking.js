@@ -153,7 +153,7 @@ function accelerometerHandler(data) {
         var y = values.y;
         var z = values.z;
 
-        var total = z;
+        var total = Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2)); // Get the total magnitude of acceleration on the device.
 
         if (pressed) {
             // Calculate and store change in velocity
