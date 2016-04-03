@@ -29,6 +29,8 @@ var minThrow = 184;     // The lowest throw
 var maxSpin = 281.0;    // The highest spin
 var minSpin = 0.4;      // the lowest spin
 
+var maxScore = 1000; 	// The highest attainable score
+
 // SensorTag characteristic id
 var characteristicId = '00002a24-0000-1000-8000-00805f9b34fb';
 
@@ -226,9 +228,9 @@ function stopTracking() {
 
 // Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible
 function calculateScore(time, max, min) {
-    var score = Math.round((time/(max-min))*10);
+    var score = Math.round((time/(max-min))*maxScore);
 
-    return (score > 10) ? 10 : score;
+    return (score > maxScore) ? maxScore : (score < 0) ? 0 : score; // Don't return negative scores (use zero instead) or scores greater than the maximum score.
 }
 
 function median(values) {
