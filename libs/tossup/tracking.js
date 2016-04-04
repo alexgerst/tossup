@@ -15,8 +15,8 @@ var throw_level = 8;    // Lower bound for velocity change indicating a throw (l
 var catch_level = 2;    // Lower bound for velocity change indicating a catch (medium)
 var peak_level = 0.05;  // Upper bound for velocity change indicating apogee reached (small)
 
-var spinAcc = [0];      // An array containing each instance of acceleration data
-var prevVel = 0;        // The previously logged velocity
+var spinAcc = {x: [0], y: [0], z: [0]};      // An array containing each instance of acceleration data
+var prevVel = {x: 0, y: 0, z: 0};        // The previously logged velocity
 
 var startTime = 0;      // Start time variable
 var peakTime = 0;       // Apogee time variable
@@ -26,8 +26,8 @@ var caughtTime = 0;     // Catch time variable
 var maxThrow = 1895;    // The highest throw
 var minThrow = 184;     // The lowest throw
 
-var maxSpin = 281.0;    // The highest spin
-var minSpin = 0.4;      // the lowest spin
+var maxSpin = 80;    // The highest spin
+var minSpin = 1;      // the lowest spin
 
 var maxScore = 1000; 	// The highest attainable score
 
@@ -80,18 +80,22 @@ function checkConnection(attemptToConnect) {
             400
         );
 
-        sensortag.device.readCharacteristic(
-            characteristicId,
-            function() {
-                if (readTimeout != null) {
-                    clearTimeout(readTimeout);
-                }
-                connected = true;
-            },
-            function() {
-                connected = false;
-            }
-        );
+        try{
+          sensortag.device.readCharacteristic(
+              characteristicId,
+              function() {
+                  if (readTimeout != null) {
+                      clearTimeout(readTimeout);
+                  }
+                  connected = true;
+              },
+              function() {
+                  connected = false;
+              }
+          );
+        } catch(e) {
+          connected=false;
+        }
     } else {
         connected = false;
     }
@@ -178,13 +182,13 @@ function accelerometerHandler(data) {
             } else if (!caught && peaked && (velocityChange >= catch_level)) {
                 caughtTime = (new Date()).getTime() - startTime;
                 caught = true;
-                displayValue("scoreField", "Caught");
                 stopButtonPress(); // Don't wait for a button press
-            }
-            var time = (caughtTime - peakTime);
+            } else if(!caught && peaked) {
+              var time = ((new Date()).getTime() - startTime - peakTime);
 
-            var heightScore = calculateScore(time, maxThrow, minThrow);
-            displayValue('scoreField', "" + heightScore);
+              var heightScore = calculateScore(time, maxThrow, minThrow);
+              displayValue('scoreField', "" + heightScore);
+            }
         }
 
         // Update last accelerometer value
@@ -201,9 +205,7 @@ function gyroscopeHandler(data) {
         var z = values.z;
 
         if (pressed) {
-            prevVel = prevVel + acc_rate*z/1000;
-            spinAcc.push(prevVel);
-            var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+            var spinScore = determineSpinScore(x, y, z);
             displayValue('scoreField', Math.abs(spinScore));
         }
     }
@@ -224,12 +226,41 @@ function stopTracking() {
         caughtTime = 0;
     } else {
         // Calculate score of spin data
-        var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+        var spinScore = determineSpinScore(0, 0, 0);
         displayValue('scoreField', Math.abs(spinScore));
-        spinAcc = [];
+        spinAcc = {x: [0], y: [0], z: [0]} ;
         HighSpin = 0;
-        prevVel = 0;
+        prevVel = {x: 0, y: 0, z: 0};
     }
+}
+
+function countTwoFitty(arr){
+  var count = 1;
+  for(var i=0; i<arr.length; i++) {
+    if(Math.abs(arr[i])>250) {
+      count+=1;
+    }
+  }
+  return count;
+}
+
+// Decides what the highest spin axis is and returns its score
+function determineSpinScore(x, y, z) {
+  // Start with the x axis
+  spinAcc['x'].push(x);
+  var spinScore = calculateScore(countTwoFitty(spinAcc['x']), maxSpin, minSpin);
+
+  // Compare to x axis
+  spinAcc['y'].push(y);
+  var temp = calculateScore(countTwoFitty(spinAcc['y']), maxSpin, minSpin);
+  spinScore = temp > spinScore ? temp : spinScore;
+
+  // Compare to z axis
+  spinAcc['z'].push(z);
+  temp = calculateScore(countTwoFitty(spinAcc['z']), maxSpin, minSpin);
+  spinScore = temp > spinScore ? temp : spinScore;
+
+  return spinScore;
 }
 
 // Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible
