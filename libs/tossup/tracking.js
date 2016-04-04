@@ -181,6 +181,10 @@ function accelerometerHandler(data) {
                 displayValue("scoreField", "Caught");
                 stopButtonPress(); // Don't wait for a button press
             }
+            var time = (caughtTime - peakTime);
+
+            var heightScore = calculateScore(time, maxThrow, minThrow);
+            displayValue('scoreField', "" + heightScore);
         }
 
         // Update last accelerometer value
@@ -199,6 +203,8 @@ function gyroscopeHandler(data) {
         if (pressed) {
             prevVel = prevVel + acc_rate*z/1000;
             spinAcc.push(prevVel);
+            var spinScore = calculateScore(median(spinAcc), maxSpin, minSpin);
+            displayValue('scoreField', Math.abs(spinScore));
         }
     }
 }
