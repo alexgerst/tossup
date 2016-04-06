@@ -228,8 +228,6 @@ function stopTracking() {
         caughtTime = 0;
     } else {
         // Calculate score of spin data
-        var spinScore = determineSpinScore(0, 0, 0);
-        displayValue('scoreField', Math.abs(spinScore));
         spinAcc = {x: [0], y: [0], z: [0]} ;
         HighSpin = 0;
     }
@@ -250,16 +248,27 @@ function determineSpinScore(x, y, z) {
     // Start with the x axis
     spinAcc['x'].push(x);
     var spinScore = calculateScore(countHighAccelerations(spinAcc['x']), maxSpin, minSpin);
+    var val = 'x';
     
     // Compare to x axis
     spinAcc['y'].push(y);
     var temp = calculateScore(countHighAccelerations(spinAcc['y']), maxSpin, minSpin);
-    spinScore = temp > spinScore ? temp : spinScore;
+    if(temp>spinScore) {
+      spinScore = temp;
+      val = 'y';
+    }
     
     // Compare to z axis
     spinAcc['z'].push(z);
     temp = calculateScore(countHighAccelerations(spinAcc['z']), maxSpin, minSpin);
-    spinScore = temp > spinScore ? temp : spinScore;
+    if(temp>spinScore) {
+      spinScore = temp;
+      val = 'z';
+    }
+
+    if(spinAcc[val][spinAcc[val].length-1]<250) {
+      stopButtonPress();
+    }
 
     return spinScore;
 }
