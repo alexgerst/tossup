@@ -16,7 +16,6 @@ var catch_level = 2;    // Lower bound for velocity change indicating a catch (m
 var peak_level = 0.05;  // Upper bound for velocity change indicating apogee reached (small)
 
 var spinAcc = {x: [0], y: [0], z: [0]};      // An array containing each instance of acceleration data
-var prevVel = {x: 0, y: 0, z: 0};        // The previously logged velocity
 
 var startTime = 0;      // Start time variable
 var peakTime = 0;       // Apogee time variable
@@ -208,6 +207,8 @@ function gyroscopeHandler(data) {
         if (pressed) {
             var spinScore = determineSpinScore(x, y, z);
             displayValue('scoreField', Math.abs(spinScore));
+        } else {
+          spinScore = 0;
         }
     }
 }
@@ -231,11 +232,10 @@ function stopTracking() {
         displayValue('scoreField', Math.abs(spinScore));
         spinAcc = {x: [0], y: [0], z: [0]} ;
         HighSpin = 0;
-        prevVel = {x: 0, y: 0, z: 0};
     }
 }
 
-function countNumTwoFifty(arr){
+function countHighAccelerations(arr){
     var count = 1;
     for (var i=0; i<arr.length; i++) {
         if (Math.abs(arr[i])>250) {
@@ -249,16 +249,16 @@ function countNumTwoFifty(arr){
 function determineSpinScore(x, y, z) {
     // Start with the x axis
     spinAcc['x'].push(x);
-    var spinScore = calculateScore(countTwoFitty(spinAcc['x']), maxSpin, minSpin);
+    var spinScore = calculateScore(countHighAccelerations(spinAcc['x']), maxSpin, minSpin);
     
     // Compare to x axis
     spinAcc['y'].push(y);
-    var temp = calculateScore(countTwoFitty(spinAcc['y']), maxSpin, minSpin);
+    var temp = calculateScore(countHighAccelerations(spinAcc['y']), maxSpin, minSpin);
     spinScore = temp > spinScore ? temp : spinScore;
     
     // Compare to z axis
     spinAcc['z'].push(z);
-    temp = calculateScore(countTwoFitty(spinAcc['z']), maxSpin, minSpin);
+    temp = calculateScore(countHighAccelerations(spinAcc['z']), maxSpin, minSpin);
     spinScore = temp > spinScore ? temp : spinScore;
 
     return spinScore;
@@ -266,7 +266,7 @@ function determineSpinScore(x, y, z) {
 
 // Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible
 function calculateScore(time, max, min) {
-    var score = Math.round((time/(max-min))*maxScore);
+    var score = Math.round(((time-min)/(max-min))*maxScore);
 
     // Don't return negative scores (use zero instead) or scores greater than the maximum score
     return (score > maxScore) ? maxScore : (score < 0) ? 0 : score;
