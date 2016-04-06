@@ -80,19 +80,19 @@ function checkConnection(attemptToConnect) {
             400
         );
 
-        try{
-          sensortag.device.readCharacteristic(
-              characteristicId,
-              function() {
-                  if (readTimeout != null) {
-                      clearTimeout(readTimeout);
-                  }
-                  connected = true;
-              },
-              function() {
-                  connected = false;
-              }
-          );
+        try {
+            sensortag.device.readCharacteristic(
+                characteristicId,
+                function() {
+                    if (readTimeout != null) {
+                        clearTimeout(readTimeout);
+                    }
+                    connected = true;
+                },
+                function() {
+                    connected = false;
+                }
+            );
         } catch(e) {
           connected=false;
         }
@@ -159,7 +159,8 @@ function accelerometerHandler(data) {
         var y = values.y;
         var z = values.z;
 
-        var total = Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2)); // Get the total magnitude of acceleration on the device.
+        // Get the total magnitude of acceleration on the device
+        var total = Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2));
 
         if (pressed) {
             // Calculate and store change in velocity
@@ -234,40 +235,41 @@ function stopTracking() {
     }
 }
 
-function countTwoFitty(arr){
-  var count = 1;
-  for(var i=0; i<arr.length; i++) {
-    if(Math.abs(arr[i])>250) {
-      count+=1;
+function countNumTwoFifty(arr){
+    var count = 1;
+    for (var i=0; i<arr.length; i++) {
+        if (Math.abs(arr[i])>250) {
+            count+=1;
+        }
     }
-  }
-  return count;
+    return count;
 }
 
 // Decides what the highest spin axis is and returns its score
 function determineSpinScore(x, y, z) {
-  // Start with the x axis
-  spinAcc['x'].push(x);
-  var spinScore = calculateScore(countTwoFitty(spinAcc['x']), maxSpin, minSpin);
+    // Start with the x axis
+    spinAcc['x'].push(x);
+    var spinScore = calculateScore(countTwoFitty(spinAcc['x']), maxSpin, minSpin);
+    
+    // Compare to x axis
+    spinAcc['y'].push(y);
+    var temp = calculateScore(countTwoFitty(spinAcc['y']), maxSpin, minSpin);
+    spinScore = temp > spinScore ? temp : spinScore;
+    
+    // Compare to z axis
+    spinAcc['z'].push(z);
+    temp = calculateScore(countTwoFitty(spinAcc['z']), maxSpin, minSpin);
+    spinScore = temp > spinScore ? temp : spinScore;
 
-  // Compare to x axis
-  spinAcc['y'].push(y);
-  var temp = calculateScore(countTwoFitty(spinAcc['y']), maxSpin, minSpin);
-  spinScore = temp > spinScore ? temp : spinScore;
-
-  // Compare to z axis
-  spinAcc['z'].push(z);
-  temp = calculateScore(countTwoFitty(spinAcc['z']), maxSpin, minSpin);
-  spinScore = temp > spinScore ? temp : spinScore;
-
-  return spinScore;
+    return spinScore;
 }
 
 // Takes a variable representing time of throw in ms, returns a score from 0-10 which ranks the throw relative to the maximum and minimum throws possible
 function calculateScore(time, max, min) {
     var score = Math.round((time/(max-min))*maxScore);
 
-    return (score > maxScore) ? maxScore : (score < 0) ? 0 : score; // Don't return negative scores (use zero instead) or scores greater than the maximum score.
+    // Don't return negative scores (use zero instead) or scores greater than the maximum score
+    return (score > maxScore) ? maxScore : (score < 0) ? 0 : score;
 }
 
 function median(values) {
