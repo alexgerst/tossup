@@ -31,8 +31,8 @@ body::before,
 section::before {
 	display: block;
 	width: 100%;
-	height: 1.1em; /* Should correspond to header's height. */
-	margin-bottom: 0.4em;
+	height: 40px; /* Should correspond to header's height. */
+	/*margin-bottom: 0.4em;*/
 
 	content: '\0000a0'; /* Non-breaking space (&nbsp;) */
 	font-size: 180%; /* Same as the header's font size. */
@@ -40,12 +40,12 @@ section::before {
 }
 
 /* Add a bottom margin. */
-body::after,
+/*body::after,
 section::after {
 	display:block;
 	content: '';
 	height: 1em;
-}
+}*/
 
 
 
@@ -75,10 +75,10 @@ header {
 	right: 0;
 
 	width: 100%;
-	height: 2.5em;
+	height: 60px;
 
 	/* Left and right margins should correspond to body margins. */
-	margin: 0 0 3.45% 0;
+	margin: 0 0 0 0;
 	/* Left padding should correspond to the back button's width. */
 	padding: 1% 2% 1% 2%;
 
