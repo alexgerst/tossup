@@ -266,7 +266,11 @@ function determineSpinScore(x, y, z) {
       val = 'z';
     }
 
-    if(spinAcc[val][spinAcc[val].length-1] < 250 && spinScore > 3) {
+    if(spinAcc[val].length > 3 &&
+        spinAcc[val][spinAcc[val].length-1] < 250 &&
+        spinAcc[val][spinAcc[val].length-2] < 250 &&
+        spinAcc[val][spinAcc[val].length-3] < 250 &&
+        spinScore > 26) {
       stopButtonPress();
     }
 
