@@ -90,10 +90,13 @@ img.btn-default {
 }
 
 button.btn-default {
+    text-align: center;
+    padding: 0px;
     margin-top:15px;
     margin-left:10px;
     margin-right:10px;
     line-height:46px;
     width:60px;
+    height: 60px;
 }
 
