@@ -97,9 +97,11 @@ function checkConnection(attemptToConnect) {
     if (attemptToConnect) {
         if (connected) {
             // set bluetooth-connected.png
+            setBluetoothImg('ui/images/bluetooth-connected.png');
             console.log('checkConnection(): bluetooth-connected');
         } else {
             // set bluetooth-connecting.png
+            setBluetoothImg('ui/images/bluetooth-connecting.png');
             console.log('checkConnection(): bluetooth-connecting');
             if (!connecting)
             {
@@ -117,6 +119,7 @@ function checkConnection(attemptToConnect) {
         }
     } else {
         // set bluetooth-off.png
+        setBluetoothImg('ui/images/bluetooth-off.png');
         console.log('checkConnection(): bluetooth-off');
         if (sensortag != null) {
             sensortag.disconnectDevice();
