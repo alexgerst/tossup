@@ -22,7 +22,10 @@ var peakTime = 0;       // Apogee time variable
 var caughtTime = 0;     // Catch time variable
 
 // Score limits
-var maxThrow = 1895;    // The highest throw
+
+var maxFactor = 1.5; // Multiplicitive factor for highest throw score (determines difficulty)
+
+var maxThrow = 1895 * maxFactor;    // The highest throw
 var minThrow = 184;     // The lowest throw
 
 var maxSpin = 80;    // The highest spin
@@ -231,8 +234,6 @@ function stopTracking() {
         caughtTime = 0;
     } else {
         // Calculate score of spin data
-        var spinScore = determineSpinScore(0, 0, 0);
-        displayValue('scoreField', Math.abs(spinScore));
         spinAcc = {x: [0], y: [0], z: [0]} ;
         HighSpin = 0;
     }
@@ -253,16 +254,31 @@ function determineSpinScore(x, y, z) {
     // Start with the x axis
     spinAcc['x'].push(x);
     var spinScore = calculateScore(countHighAccelerations(spinAcc['x']), maxSpin, minSpin);
+    var val = 'x';
     
     // Compare to x axis
     spinAcc['y'].push(y);
     var temp = calculateScore(countHighAccelerations(spinAcc['y']), maxSpin, minSpin);
-    spinScore = temp > spinScore ? temp : spinScore;
+    if(temp>spinScore) {
+      spinScore = temp;
+      val = 'y';
+    }
     
     // Compare to z axis
     spinAcc['z'].push(z);
     temp = calculateScore(countHighAccelerations(spinAcc['z']), maxSpin, minSpin);
-    spinScore = temp > spinScore ? temp : spinScore;
+    if(temp>spinScore) {
+      spinScore = temp;
+      val = 'z';
+    }
+
+    if(spinAcc[val].length > 3 &&
+        spinAcc[val][spinAcc[val].length-1] < 250 &&
+        spinAcc[val][spinAcc[val].length-2] < 250 &&
+        spinAcc[val][spinAcc[val].length-3] < 250 &&
+        spinScore > 26) {
+      stopButtonPress();
+    }
 
     return spinScore;
 }
