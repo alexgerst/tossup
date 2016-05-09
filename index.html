@@ -90,7 +90,7 @@
                 } else {
                     saveSpinScore(name, score);
                 }
-                saveObject('tossMode', getTossMode());
+
                 window.location = 'leaderboard.html';
             }
 
@@ -111,6 +111,13 @@
             }
 
             function modeToggle() {
+                if (localStorage['displayMode'] === undefined ||
+                    localStorage['displayMode'] == 'spin') {
+                    localStorage['displayMode'] = 'height';
+                }
+                else {
+                    localStorage['displayMode'] = 'spin';
+                }
                 if (getTossMode()) {
                     $('#mode_button').text("Height");
                     $('#score_label').text("Spin");
@@ -123,6 +130,7 @@
                     setTossMode(true);
                 }
             }
+        localStorage['displayMode'] = 'height';
         </script>
     </body>
 </html>
