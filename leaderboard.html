@@ -49,8 +49,12 @@
 
         <script>
             function modeToggle() {
-                heightMode = !heightMode;
-                loadPage();
+              if (localStorage['displayMode'] === 'spin') {
+                  localStorage['displayMode'] = 'height';
+              } else {
+                  localStorage['displayMode'] = 'spin';
+              }
+              loadPage();
             }
 
             function generateRow(rank, name, score) {
@@ -72,7 +76,7 @@
                 var button = $('#mode-button');
                 $('.score-row').remove();
                 var scores;
-                if (heightMode) {
+                if (localStorage['displayMode'] === 'height') {
                     scores = getHeightScores();
                     title.text('Height Scores');
                     button.text('Spin');
@@ -88,7 +92,6 @@
                     $('#main-container').append(generateRow(counter, score.name, score.score));
                 }
             }
-            heightMode = loadObject('heightMode');
             loadPage();
         </script>
 

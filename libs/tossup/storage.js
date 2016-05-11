@@ -10,7 +10,6 @@ function loadObject(name) {
     if(typeof(Storage) !== "undefined") {
         var object = localStorage[name];
         if(object !== undefined && object != '') {
-            console.log(object);
             return JSON.parse(object);
         } else {
             return undefined;
